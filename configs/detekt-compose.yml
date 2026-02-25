@@ -1,0 +1,130 @@
+# ARCDevTools-Android Detekt Compose Rules
+# https://detekt.dev/docs/rules/compose/
+# Requires: io.nlopez.compose.rules:detekt plugin
+# Version: 1.0.0
+
+# These rules complement the main detekt.yml with Jetpack Compose-specific checks.
+
+compose:
+  active: true
+
+  ComposableAnnotationNaming:
+    active: true
+
+  ComposableEventParameterNaming:
+    active: true
+    # Event parameters should follow on<Event> naming (e.g., onClick, onValueChange)
+
+  ComposableFunctionName:
+    active: true
+    # Composable functions returning Unit should be PascalCase
+    # Composable functions returning a value should be camelCase
+
+  ComposableNaming:
+    active: true
+
+  ComposableParamOrder:
+    active: true
+    # Parameters should be ordered: required, optional with defaults, modifier, trailing lambda
+
+  CompositionLocalAllowlist:
+    active: false
+    # Enable and configure when you have a specific allowlist
+
+  CompositionLocalNaming:
+    active: true
+    # CompositionLocal names should start with "Local" prefix
+
+  ContentEmitterReturningValues:
+    active: true
+    # Composable functions that emit content should return Unit
+
+  DefaultsVisibility:
+    active: true
+    # Default values for Composable functions should be internal or private
+
+  LambdaParameterInRestartableEffect:
+    active: true
+    # Lambdas used in restartable effects should use rememberUpdatedState
+
+  Material2:
+    active: false
+    # Disabled by default - enable if migrating from Material 2
+
+  ModifierClickableOrder:
+    active: true
+    # Modifier.clickable should be placed after size/padding modifiers
+
+  ModifierComposable:
+    active: true
+    # Modifier factory functions should not be @Composable
+
+  ModifierComposed:
+    active: true
+    # Prefer Modifier.Node over Modifier.composed
+
+  ModifierMissing:
+    active: true
+    # Root-level Composables should accept a Modifier parameter
+
+  ModifierNaming:
+    active: true
+    # Modifier parameter should be named "modifier"
+
+  ModifierNotUsedAtRoot:
+    active: true
+    # Modifier parameter should be used on the root element
+
+  ModifierReused:
+    active: true
+    # Modifier should not be reused across multiple elements
+
+  ModifierWithoutDefault:
+    active: true
+    # Modifier parameter should have a default value of Modifier
+
+  MultipleEmitters:
+    active: true
+    # Composable functions should not emit content from multiple sources
+
+  MutableParameters:
+    active: true
+    # Composable functions should not accept mutable types as parameters
+
+  MutableStateAutoboxing:
+    active: true
+    # Use mutableIntStateOf, mutableLongStateOf, etc. for primitive types
+
+  MutableStateParam:
+    active: true
+    # Don't pass MutableState as a parameter - hoist the state instead
+
+  ParameterNaming:
+    active: true
+
+  PreviewAnnotationNaming:
+    active: true
+    # Custom preview annotations should end with "Preview"
+
+  PreviewPublic:
+    active: true
+    # @Preview functions should be private
+
+  RememberMissing:
+    active: true
+    # Expensive objects should be wrapped in remember {}
+
+  RememberContentMissing:
+    active: true
+
+  UnstableCollections:
+    active: true
+    # Use kotlinx.collections.immutable for stable collections in Compose
+
+  ViewModelForwarding:
+    active: true
+    # Don't forward ViewModel instances to other Composables
+
+  ViewModelInjection:
+    active: true
+    # ViewModels should be injected at the top-level Composable, not in nested ones
