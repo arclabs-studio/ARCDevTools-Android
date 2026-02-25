@@ -1,0 +1,94 @@
+#!/bin/bash
+# ARCDevTools-Android Pre-commit Hook
+# Version: 1.0.0
+
+set -e
+
+# Allow skipping hooks for emergencies
+if [ "$SKIP_HOOKS" = "1" ]; then
+  echo ""
+  echo "========================================================"
+  echo "  WARNING: Pre-commit checks disabled"
+  echo "========================================================"
+  echo ""
+  echo "  CI will run these same checks and reject the PR"
+  echo "  if there are violations."
+  echo ""
+  echo "  Run 'make lint' to verify locally before push."
+  echo ""
+  exit 0
+fi
+
+echo "Pre-commit: Checking code quality..."
+
+# Detect staged Kotlin files
+STAGED_KT=$(git diff --cached --name-only --diff-filter=ACM | grep "\.kt$" || true)
+
+if [ -z "$STAGED_KT" ]; then
+  echo "  No Kotlin files staged, skipping..."
+  exit 0
+fi
+
+echo "  Files to check:"
+echo "$STAGED_KT" | sed 's/^/    - /'
+
+# 1. ktlint format (auto-fix)
+if [ -f "./gradlew" ]; then
+  echo ""
+  echo "  Running ktlint format..."
+  if ./gradlew ktlintFormat --daemon -q 2>/dev/null; then
+    # Re-stage formatted files
+    echo "$STAGED_KT" | xargs git add
+    echo "  Formatting applied"
+  else
+    echo "  Warning: ktlint format had issues, continuing..."
+  fi
+fi
+
+# 2. ktlint check (strict)
+if [ -f "./gradlew" ]; then
+  echo ""
+  echo "  Running ktlint check..."
+  if ./gradlew ktlintCheck --daemon -q 2>/dev/null; then
+    echo "  ktlint passed"
+  else
+    echo ""
+    echo "========================================================"
+    echo "  ktlint found violations"
+    echo "========================================================"
+    echo ""
+    echo "  Options:"
+    echo "    1. Fix the violations shown above"
+    echo "    2. Run './gradlew ktlintFormat' for auto-correction"
+    echo "    3. Use 'SKIP_HOOKS=1 git commit' to skip (NOT recommended)"
+    echo ""
+    echo "  If you skip the hook, CI will reject the PR"
+    echo ""
+    exit 1
+  fi
+fi
+
+# 3. detekt (static analysis on staged files)
+if [ -f "./gradlew" ]; then
+  echo ""
+  echo "  Running detekt..."
+  if ./gradlew detekt --daemon -q 2>/dev/null; then
+    echo "  detekt passed"
+  else
+    echo ""
+    echo "========================================================"
+    echo "  detekt found issues"
+    echo "========================================================"
+    echo ""
+    echo "  Options:"
+    echo "    1. Fix the issues shown above"
+    echo "    2. Use 'SKIP_HOOKS=1 git commit' to skip (NOT recommended)"
+    echo ""
+    echo "  If you skip the hook, CI will reject the PR"
+    echo ""
+    exit 1
+  fi
+fi
+
+echo ""
+echo "Pre-commit completed - Commit allowed"

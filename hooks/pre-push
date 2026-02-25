@@ -1,0 +1,25 @@
+#!/bin/bash
+# ARCDevTools-Android Pre-push Hook
+# Runs unit tests before pushing to remote
+# Version: 1.0.0
+
+echo "Pre-push: Running unit tests..."
+
+if [ -f "./gradlew" ]; then
+  ./gradlew testDebugUnitTest --daemon
+
+  TEST_EXIT_CODE=$?
+
+  if [ $TEST_EXIT_CODE -ne 0 ]; then
+    echo ""
+    echo "Tests failed. Push aborted."
+    echo "Fix failing tests or use --no-verify to bypass (not recommended)"
+    exit 1
+  fi
+
+  echo "All tests passed. Proceeding with push."
+else
+  echo "Warning: gradlew not found, skipping tests"
+fi
+
+exit 0
