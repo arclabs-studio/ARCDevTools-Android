@@ -11,11 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.0.0] - 2026-02-25
+## [0.1.0] - 2026-02-25
 
 ### Initial Release
 
-ARCDevTools-Android v1.0.0 is the first production-ready release, providing **centralized quality tooling and standards for ARC Labs Studio Android projects**.
+ARCDevTools-Android v0.1.0 is the first release, providing **centralized quality tooling and standards for ARC Labs Studio Android projects**.
 
 ARCDevTools-Android is a **configuration repository** integrated as a **Git submodule**, offering standardized ktlint and detekt configurations, git hooks, GitHub Actions workflow templates, and automation scripts.
 
@@ -133,7 +133,7 @@ git submodule update --init --recursive
 
 # Commit integration
 git add .gitmodules ARCDevTools-Android/ .editorconfig config/ Makefile
-git commit -m "chore: integrate ARCDevTools-Android v1.0"
+git commit -m "chore: integrate ARCDevTools-Android v0.1.0"
 ```
 
 ---
@@ -146,5 +146,5 @@ git commit -m "chore: integrate ARCDevTools-Android v1.0"
 
 ---
 
-[Unreleased]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/arclabs-studio/ARCDevTools-Android/releases/tag/v1.0.0
+[Unreleased]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/arclabs-studio/ARCDevTools-Android/releases/tag/v0.1.0
