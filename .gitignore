@@ -1,0 +1,41 @@
+# macOS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.log
+*.swp
+*.tmp
+*.old
+
+# Android / Gradle build artifacts
+build/
+.gradle/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+
+# Kotlin
+*.kotlin_module
+
+# Local properties (SDK path, signing keys)
+local.properties
+keystore.properties
+
+# ARC Labs Security - Sensitive files
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.jks
+*.keystore
+*secret*
+*password*
+*credentials*
+
+# Local configuration
+.claude-code/
+*.local
+logs/
