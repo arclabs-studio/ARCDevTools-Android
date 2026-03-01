@@ -1,13 +1,13 @@
 #!/bin/bash
 # ARCDevTools-Android Setup Script
-# Version: 1.1.0
+# Version: 1.2.0
 #
 # Installs ARCDevTools-Android configuration files, git hooks, and generates
 # Makefile for ARC Labs Studio Android projects.
 
 set -e
 
-VERSION="1.1.0"
+VERSION="1.2.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(pwd)"
 
