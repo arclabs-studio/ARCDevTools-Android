@@ -83,6 +83,28 @@ fun MyScreen() { }
 fun myScreen() { }
 ```
 
+### "no-unused-imports rule not running"
+
+**Cause:** Since ktlint 1.7.0, the `no-unused-imports` rule is disabled by default due to recurring issues.
+
+**Solution:** ARCDevTools-Android explicitly enables this rule in `.editorconfig`. If you see unused imports not being flagged, verify your `.editorconfig` contains:
+
+```editorconfig
+[*.{kt,kts}]
+ktlint_standard_no-unused-imports = enabled
+```
+
+### "context-receiver-wrapping errors"
+
+**Cause:** ktlint 1.7.0+ added context receiver/parameter wrapping rules that may flag code using Kotlin context parameters.
+
+**Solution:** Ensure you're using ktlint 1.7.1+ which includes compatibility fixes. If issues persist, you can disable the rule:
+
+```editorconfig
+[*.{kt,kts}]
+ktlint_standard_context-receiver-wrapping = disabled
+```
+
 ---
 
 ## detekt Issues
@@ -113,7 +135,7 @@ detekt {
 
 ```toml
 [versions]
-detekt = "1.23.7"  # Minimum required version
+detekt = "1.23.8"  # Minimum required version
 ```
 
 ### detekt-compose rules not working

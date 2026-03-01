@@ -18,8 +18,8 @@ Add the following to your `gradle/libs.versions.toml`:
 
 ```toml
 [versions]
-detekt = "1.23.7"
-ktlint = "12.1.2"
+detekt = "1.23.8"
+ktlint = "14.0.1"
 
 [plugins]
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
@@ -53,7 +53,7 @@ subprojects {
 
     // ktlint configuration
     ktlint {
-        version.set("1.4.1")
+        version.set("1.7.1")
         android.set(true)
         outputToConsole.set(true)
         ignoreFailures.set(false)
@@ -84,6 +84,9 @@ detekt {
 dependencies {
     detektPlugins("io.nlopez.compose.rules:detekt:0.4.22")
 }
+
+// Note: compose-rules 0.5.x targets detekt 2.x and is NOT compatible with detekt 1.23.x.
+// Stay on 0.4.22 until you migrate to detekt 2.x.
 ```
 
 ---
@@ -108,6 +111,7 @@ To use the Compose-specific rules, add the detekt-compose plugin dependency:
 dependencies {
     detektPlugins("io.nlopez.compose.rules:detekt:0.4.22")
 }
+// Note: compose-rules 0.5.x targets detekt 2.x - stay on 0.4.22 for detekt 1.23.x
 ```
 
 And reference both config files:
@@ -205,7 +209,7 @@ subprojects {
     }
 
     ktlint {
-        version.set("1.4.1")
+        version.set("1.7.1")
         android.set(true)
         outputToConsole.set(true)
     }

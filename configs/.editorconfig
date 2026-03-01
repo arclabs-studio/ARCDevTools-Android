@@ -1,6 +1,7 @@
 # ARCDevTools-Android EditorConfig
 # https://editorconfig.org
 # https://pinterest.github.io/ktlint/latest/rules/configuration-ktlint/
+# Version: 1.1.0
 
 root = true
 
@@ -24,10 +25,15 @@ ktlint_function_signature_body_expression_wrapping = multiline
 # Naming conventions
 ktlint_standard_package-name = enabled
 ktlint_standard_filename = enabled
+ktlint_standard_property-naming = enabled
 
 # Import ordering
 ktlint_standard_import-ordering = enabled
 ktlint_standard_no-wildcard-imports = enabled
+
+# no-unused-imports: disabled by default since ktlint 1.7.0 (causes issues).
+# Enable explicitly if desired.
+ktlint_standard_no-unused-imports = enabled
 
 # Blank lines
 ktlint_standard_no-blank-line-before-rbrace = enabled
@@ -42,6 +48,12 @@ ktlint_standard_argument-list-wrapping = enabled
 ktlint_standard_parameter-list-wrapping = enabled
 ktlint_standard_wrapping = enabled
 ktlint_standard_multiline-expression-wrapping = enabled
+
+# Context receiver wrapping (ktlint 1.7.0+)
+ktlint_standard_context-receiver-wrapping = enabled
+
+# Modifier order (ktlint 1.7.0+, includes context receivers)
+ktlint_standard_modifier-order = enabled
 
 # Compose rules (requires ktlint-compose-rules plugin)
 ktlint_compose_composable-function-naming = enabled
@@ -65,6 +77,9 @@ indent_size = 4
 
 [*.{gradle,gradle.kts}]
 indent_size = 4
+
+[*.json]
+indent_size = 2
 
 [Makefile]
 indent_style = tab
