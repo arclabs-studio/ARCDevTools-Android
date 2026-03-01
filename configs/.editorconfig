@@ -1,6 +1,7 @@
 # ARCDevTools-Android EditorConfig
 # https://editorconfig.org
 # https://pinterest.github.io/ktlint/latest/rules/configuration-ktlint/
+# Version: 1.2.0
 
 root = true
 
@@ -17,33 +18,78 @@ max_line_length = 120
 # ktlint configuration
 ktlint_code_style = intellij_idea
 
-# Function signatures
+# --- Signatures & Multiline ---
+
+# Function signatures: force multiline when >= 3 parameters
+ktlint_standard_function-signature = enabled
 ktlint_function_signature_rule_force_multiline_when_parameter_count_greater_or_equal_than = 3
 ktlint_function_signature_body_expression_wrapping = multiline
 
-# Naming conventions
+# Class signatures: force multiline when >= 3 constructor parameters (aligned with function signatures)
+ktlint_standard_class-signature = enabled
+ktlint_class_signature_rule_force_multiline_when_parameter_count_greater_or_equal_than = 3
+
+# --- Wrapping ---
+
+# Argument list wrapping at call-site (unset = always wrap when exceeding max_line_length)
+ktlint_standard_argument-list-wrapping = enabled
+ktlint_argument_list_wrapping_ignore_when_parameter_count_greater_or_equal_than = unset
+
+# Parameter list wrapping at declaration-site
+ktlint_standard_parameter-list-wrapping = enabled
+
+# General wrapping
+ktlint_standard_wrapping = enabled
+
+# Multiline expression wrapping (RHS of assignments forced to new line)
+ktlint_standard_multiline-expression-wrapping = enabled
+
+# Binary expression wrapping (arithmetic and logical operators)
+ktlint_standard_binary-expression-wrapping = enabled
+
+# Chain method continuation: force multiline when >= 4 chained calls
+ktlint_standard_chain-method-continuation = enabled
+ktlint_chain_method_rule_force_multiline_when_chain_operator_count_greater_or_equal_than = 4
+
+# Context receiver wrapping (ktlint 1.7.0+)
+ktlint_standard_context-receiver-wrapping = enabled
+
+# Modifier order (ktlint 1.7.0+, includes context receivers)
+ktlint_standard_modifier-order = enabled
+
+# --- Annotations ---
+
+# Annotations with parameters treated same as without (ktlint 1.6.0+)
+# Ensures @Annotation(param) is on its own line, just like @Annotation
+ktlint_annotation_handle_annotations_with_parameters_same_as_annotations_without_parameters = true
+
+# --- Naming ---
+
 ktlint_standard_package-name = enabled
 ktlint_standard_filename = enabled
+ktlint_standard_property-naming = enabled
 
-# Import ordering
+# --- Imports ---
+
 ktlint_standard_import-ordering = enabled
 ktlint_standard_no-wildcard-imports = enabled
 
-# Blank lines
+# no-unused-imports: disabled by default since ktlint 1.7.0 (causes issues).
+# Enable explicitly if desired.
+ktlint_standard_no-unused-imports = enabled
+
+# --- Blank lines ---
+
 ktlint_standard_no-blank-line-before-rbrace = enabled
 ktlint_standard_no-consecutive-blank-lines = enabled
 
-# Trailing commas
+# --- Trailing commas ---
+
 ktlint_standard_trailing-comma-on-call-site = enabled
 ktlint_standard_trailing-comma-on-declaration-site = enabled
 
-# Wrapping
-ktlint_standard_argument-list-wrapping = enabled
-ktlint_standard_parameter-list-wrapping = enabled
-ktlint_standard_wrapping = enabled
-ktlint_standard_multiline-expression-wrapping = enabled
+# --- Compose rules (requires ktlint-compose-rules plugin) ---
 
-# Compose rules (requires ktlint-compose-rules plugin)
 ktlint_compose_composable-function-naming = enabled
 ktlint_compose_modifier-missing-check = enabled
 ktlint_compose_modifier-not-used-at-root = enabled
@@ -65,6 +111,9 @@ indent_size = 4
 
 [*.{gradle,gradle.kts}]
 indent_size = 4
+
+[*.json]
+indent_size = 2
 
 [Makefile]
 indent_style = tab
