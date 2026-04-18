@@ -61,6 +61,26 @@ The setup tool will:
 4. Generate a `Makefile` with useful commands
 5. Optionally copy GitHub Actions workflows
 
+## Claude Code Setup
+
+The setup script automatically installs Claude Code integration:
+
+- **`claude-hooks/`** — Auto-format on save, commit validation, git safety checks
+- **`.claude/settings.json`** — Hook registrations for Claude Code sessions
+- **`.claude/skills/`** — Symlinked from ARCKnowledge-Android (when available)
+
+To also configure MCP servers (Context7, Android Skills):
+
+```bash
+make mcp
+```
+
+Or run setup with the `--with-mcp` flag:
+
+```bash
+./ARCDevTools-Android/arc-setup --with-mcp
+```
+
 ## Verify Installation
 
 After setup completes, verify everything is working:

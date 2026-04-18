@@ -11,6 +11,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.0] - 2026-04-19
+
+### Added
+
+#### Claude Code Integration
+
+- **Claude Hooks** (`claude-hooks/`) — 4 shell scripts for Claude Code automation
+  - `session-start.sh` — Shows branch, changes, last release on session start
+  - `validate-commit.sh` — Enforces Conventional Commits format
+  - `block-dangerous-git.sh` — Blocks force push, git clean -f, reset --hard, branch -D
+  - `format-on-save.sh` — Auto-formats .kt/.kts files with ktlint after Edit/Write
+- **Claude Settings** (`.claude/settings.json`) — Shared hooks configuration
+  - PostToolUse: format-on-save on Edit/Write
+  - PreToolUse: validate commits + block dangerous git on Bash
+  - Stop: verify compilation via `./gradlew assembleDebug`
+  - SessionStart: load project context
+- **Skills Setup** (`scripts/setup-skills.sh`) — Symlinks skills from ARCKnowledge-Android
+- **MCP Setup** (`scripts/setup-mcp.sh`) — Registers recommended MCP servers (Context7, Android Skills)
+- **MCP Template** (`configs/mcp/claude-mcp.json`) — Reference configuration for downstream projects
+
+#### arc-setup Enhancements
+
+- Claude hooks are now copied to downstream projects during setup
+- `.claude/settings.json` is installed if not already present
+- Skills are symlinked automatically during setup
+- New `--with-mcp` / `--no-mcp` flags for MCP server configuration
+- Makefile now includes `make skills` and `make mcp` targets
+- arc-setup version bumped to 1.3.0
+
+---
+
 ## [0.2.0] - 2026-03-01
 
 ### Updated
@@ -201,6 +232,7 @@ git commit -m "chore: integrate ARCDevTools-Android v0.1.0"
 
 ---
 
-[Unreleased]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/arclabs-studio/ARCDevTools-Android/releases/tag/v0.1.0

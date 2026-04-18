@@ -1,0 +1,60 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/claude-hooks/format-on-save.sh",
+            "timeout": 10,
+            "statusMessage": "Formatting Kotlin..."
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/claude-hooks/validate-commit.sh",
+            "timeout": 5,
+            "statusMessage": "Validating commit message..."
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/claude-hooks/block-dangerous-git.sh",
+            "timeout": 5,
+            "statusMessage": "Checking git safety..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "If .kt or .kts files were edited during this session, verify the project compiles by running './gradlew assembleDebug'. Do NOT run tests -- that is handled by pre-push hooks. Only check compilation.",
+            "model": "claude-haiku-4-5"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/claude-hooks/session-start.sh",
+            "timeout": 10,
+            "statusMessage": "Loading project context..."
+          }
+        ]
+      }
+    ]
+  }
+}
