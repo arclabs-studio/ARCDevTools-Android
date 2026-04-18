@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    },
+    "android-skills": {
+      "command": "npx",
+      "args": ["-y", "android-skills-mcp"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/github-mcp@latest"],
+      "env": {
+        "GITHUB_TOKEN": "<your-github-token>"
+      }
+    },
+    "linear": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/linear-mcp@latest"],
+      "env": {
+        "LINEAR_API_KEY": "<your-linear-api-key>"
+      }
+    }
+  }
+}
