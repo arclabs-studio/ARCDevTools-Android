@@ -11,6 +11,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.0] - 2026-03-01
+
+### Updated
+
+#### Tool Version Alignment
+
+- **detekt**: Updated recommended version from 1.23.7 to **1.23.8** (Kotlin 2.0.21, bug fixes)
+- **ktlint Gradle plugin**: Updated recommended version from 12.1.2 to **14.0.1**
+- **ktlint**: Updated recommended version from 1.4.1 to **1.7.1** (Kotlin 2.2.0 support, context parameters)
+- **compose-rules**: Added compatibility note for 0.5.x (targets detekt 2.x, incompatible with 1.23.x)
+
+#### EditorConfig (`.editorconfig`)
+
+- Added `property-naming` rule (ktlint 1.5.0+)
+- Added explicit `no-unused-imports = enabled` (disabled by default since ktlint 1.7.0)
+- Added `context-receiver-wrapping` rule (ktlint 1.7.0+)
+- Added `modifier-order` rule with context receiver support (ktlint 1.7.0+)
+- Added `[*.json]` section with `indent_size = 2`
+- Added version header comment
+
+#### Detekt Configuration (`detekt.yml`)
+
+- Updated `UndocumentedPublicClass` with new configurable options (`searchInInnerClass`, `searchInInnerInterface`, `searchInInnerObject`, `searchInProtectedClass`)
+- Updated `MatchingDeclarationName` with `multiplatformTargetSuffixes` support (detekt 1.23.8)
+- Documented `InjectDispatcher` false positive fix (detekt 1.23.8)
+- Documented `UnnecessaryParentheses` floating-point fix (detekt 1.23.8)
+- Documented `UseDataClass` expect class fix (detekt 1.23.8)
+
+#### Detekt Compose Rules (`detekt-compose.yml`)
+
+- Fixed rule set name from `compose` to `Compose` (correct casing for detekt)
+- Updated documentation URL to point to compose-rules project
+- Added configuration hints for `ViewModelForwarding` and `ViewModelInjection`
+- Added configuration hints for `ComposableFunctionName` and `ComposableNaming`
+
+#### Documentation
+
+- Updated `integration.md`: detekt 1.23.8, ktlint plugin 14.0.1, ktlint 1.7.1
+- Added compose-rules 0.5.x/detekt 2.x compatibility warnings
+- Updated `troubleshooting.md`: new sections for ktlint 1.7.x issues (`no-unused-imports`, `context-receiver-wrapping`)
+- Updated minimum detekt version reference to 1.23.8
+
+#### Scripts & Hooks
+
+- Bumped all script and hook versions to 1.1.0
+
+---
+
 ## [0.1.0] - 2026-02-25
 
 ### Initial Release
@@ -146,5 +194,6 @@ git commit -m "chore: integrate ARCDevTools-Android v0.1.0"
 
 ---
 
-[Unreleased]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/arclabs-studio/ARCDevTools-Android/releases/tag/v0.1.0

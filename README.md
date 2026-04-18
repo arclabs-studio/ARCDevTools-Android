@@ -140,7 +140,7 @@ ARCDevTools-Android/
 
 ## Requirements
 
-- **Kotlin** 2.0+
+- **Kotlin** 2.0.21+
 - **Android Gradle Plugin** 8.0+
 - **Java** 17+
 - **Git** 2.30+

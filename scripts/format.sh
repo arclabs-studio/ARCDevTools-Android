@@ -1,7 +1,7 @@
 #!/bin/bash
 # ARCDevTools-Android - Format Runner
 # Runs ktlint format to auto-fix code style
-# Version: 1.0.0
+# Version: 1.1.0
 
 set -e
 

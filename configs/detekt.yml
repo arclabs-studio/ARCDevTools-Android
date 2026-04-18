@@ -1,6 +1,7 @@
 # ARCDevTools-Android Detekt Configuration
 # https://detekt.dev/docs/rules/
-# Version: 1.0.0
+# Version: 1.1.0
+# Compatible with: detekt 1.23.8+ (Kotlin 2.0.21)
 
 build:
   maxIssues: 0
@@ -54,6 +55,10 @@ comments:
     allowParamOnConstructorProperties: false
   UndocumentedPublicClass:
     active: false
+    searchInInnerClass: true
+    searchInInnerInterface: true
+    searchInInnerObject: true
+    searchInProtectedClass: false
   UndocumentedPublicFunction:
     active: false
   UndocumentedPublicProperty:
@@ -154,6 +159,7 @@ coroutines:
     active: true
   InjectDispatcher:
     active: true
+    # detekt 1.23.8: fixed false positive reports
     dispatcherNames:
       - 'IO'
       - 'Default'
@@ -328,6 +334,8 @@ naming:
   MatchingDeclarationName:
     active: true
     mustBeFirst: true
+    # detekt 1.23.8: supports platform-specific suffixes (e.g., MyClass.android.kt)
+    multiplatformTargetSuffixes: []
   MemberNameEqualsClassName:
     active: true
     ignoreOverridden: true
@@ -673,6 +681,7 @@ style:
   UnnecessaryParentheses:
     active: true
     allowForUnclearPrecedence: false
+    # detekt 1.23.8: correctly handles floating-point without integer part (e.g., .5f)
   UntilInsteadOfRangeTo:
     active: true
   UnusedImports:
@@ -699,6 +708,7 @@ style:
   UseDataClass:
     active: true
     allowVars: false
+    # detekt 1.23.8: no longer flags expect classes
   UseEmptyCounterpart:
     active: true
   UseIfEmptyOrIfBlank:
