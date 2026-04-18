@@ -1,11 +1,12 @@
 # ARCDevTools-Android Detekt Compose Rules
-# https://detekt.dev/docs/rules/compose/
-# Requires: io.nlopez.compose.rules:detekt plugin
-# Version: 1.0.0
+# https://mrmans0n.github.io/compose-rules/detekt/
+# Requires: io.nlopez.compose.rules:detekt plugin (0.4.22+)
+# Version: 1.2.0
 
 # These rules complement the main detekt.yml with Jetpack Compose-specific checks.
+# Full rules documentation: https://mrmans0n.github.io/compose-rules/rules/
 
-compose:
+Compose:
   active: true
 
   ComposableAnnotationNaming:
@@ -19,9 +20,11 @@ compose:
     active: true
     # Composable functions returning Unit should be PascalCase
     # Composable functions returning a value should be camelCase
+    # Use allowedComposableFunctionNames to exempt specific names (regex)
 
   ComposableNaming:
     active: true
+    # Configure allowedComposableFunctionNames regex if needed
 
   ComposableParamOrder:
     active: true
@@ -30,6 +33,7 @@ compose:
   CompositionLocalAllowlist:
     active: false
     # Enable and configure when you have a specific allowlist
+    # allowedCompositionLocals: LocalFoo,LocalBar
 
   CompositionLocalNaming:
     active: true
@@ -124,7 +128,10 @@ compose:
   ViewModelForwarding:
     active: true
     # Don't forward ViewModel instances to other Composables
+    # Configure allowedForwarding regex for exceptions
+    # Configure allowedForwardingOfTypes regex for ViewModel type exceptions
 
   ViewModelInjection:
     active: true
     # ViewModels should be injected at the top-level Composable, not in nested ones
+    # Configure viewModelFactories for custom factories (e.g., hiltViewModel)
