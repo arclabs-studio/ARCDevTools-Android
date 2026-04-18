@@ -1,6 +1,6 @@
 # ARCDevTools-Android Detekt Configuration
 # https://detekt.dev/docs/rules/
-# Version: 1.1.0
+# Version: 1.2.0
 # Compatible with: detekt 1.23.8+ (Kotlin 2.0.21)
 
 build:
@@ -588,7 +588,8 @@ style:
     active: true
   MaxChainedCallsOnSameLine:
     active: true
-    maxChainedCalls: 5
+    # Aligned with ktlint chain-method-continuation threshold (4)
+    maxChainedCalls: 4
   MaxLineLength:
     active: true
     maxLineLength: 120

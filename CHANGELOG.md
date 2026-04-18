@@ -22,17 +22,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **ktlint**: Updated recommended version from 1.4.1 to **1.7.1** (Kotlin 2.2.0 support, context parameters)
 - **compose-rules**: Added compatibility note for 0.5.x (targets detekt 2.x, incompatible with 1.23.x)
 
-#### EditorConfig (`.editorconfig`)
+#### EditorConfig (`.editorconfig`) — Multiline, Wrapping & Parameters
 
+- **Class signature wrapping**: Added `class-signature` rule with multiline forced at >= 3 parameters (aligned with function signatures and iOS SwiftFormat conventions)
+- **Function signature wrapping**: Explicitly enabled `function-signature` rule
+- **Argument list wrapping**: Configured `argument_list_wrapping_ignore_when_parameter_count_greater_or_equal_than = unset` (wrap based on `max_line_length` only)
+- **Binary expression wrapping**: Enabled `binary-expression-wrapping` for arithmetic/logical operator multiline alignment
+- **Chain method continuation**: Enabled with threshold of 4 chained calls (aligned with iOS)
+- **Annotation handling**: Added `ktlint_annotation_handle_annotations_with_parameters_same_as_annotations_without_parameters = true` (ktlint 1.6.0+) — annotations with parameters get their own line, just like annotations without
 - Added `property-naming` rule (ktlint 1.5.0+)
 - Added explicit `no-unused-imports = enabled` (disabled by default since ktlint 1.7.0)
 - Added `context-receiver-wrapping` rule (ktlint 1.7.0+)
 - Added `modifier-order` rule with context receiver support (ktlint 1.7.0+)
 - Added `[*.json]` section with `indent_size = 2`
-- Added version header comment
+- Reorganized config into logical sections (signatures, wrapping, annotations, naming, imports, etc.)
 
 #### Detekt Configuration (`detekt.yml`)
 
+- Aligned `MaxChainedCallsOnSameLine` threshold from 5 to **4** (consistent with ktlint chain-method-continuation)
 - Updated `UndocumentedPublicClass` with new configurable options (`searchInInnerClass`, `searchInInnerInterface`, `searchInInnerObject`, `searchInProtectedClass`)
 - Updated `MatchingDeclarationName` with `multiplatformTargetSuffixes` support (detekt 1.23.8)
 - Documented `InjectDispatcher` false positive fix (detekt 1.23.8)

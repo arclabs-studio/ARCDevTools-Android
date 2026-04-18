@@ -1,7 +1,7 @@
 # ARCDevTools-Android Detekt Compose Rules
 # https://mrmans0n.github.io/compose-rules/detekt/
 # Requires: io.nlopez.compose.rules:detekt plugin (0.4.22+)
-# Version: 1.1.0
+# Version: 1.2.0
 
 # These rules complement the main detekt.yml with Jetpack Compose-specific checks.
 # Full rules documentation: https://mrmans0n.github.io/compose-rules/rules/
