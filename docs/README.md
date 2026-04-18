@@ -10,6 +10,7 @@ Centralized quality automation and development tooling for ARC Labs Studio Andro
 - [CI/CD Guide](ci-cd.md) - Set up GitHub Actions workflows
 - [Troubleshooting](troubleshooting.md) - Common issues and solutions
 - [Migration Guide](MIGRATION_V1_TO_V2.md) - Future upgrade guide (placeholder)
+- [CLAUDE.md](../CLAUDE.md) - Claude Code integration and hook documentation
 
 ## Overview
 
@@ -18,6 +19,9 @@ ARCDevTools-Android provides standardized development tooling for ARC Labs Andro
 - **ktlint Configuration** - Code style enforcement via .editorconfig with Compose rules
 - **detekt Configuration** - Static analysis with all rule categories and Compose-specific checks
 - **Git Hooks** - Pre-commit and pre-push hooks for automated quality checks
+- **Claude Code Hooks** - Auto-format, commit validation, git safety, session context
+- **AI Skills** - Symlinked from ARCKnowledge-Android for Claude Code sessions
+- **MCP Setup** - Automated MCP server registration (Context7, Android Skills)
 - **GitHub Actions Workflows** - CI/CD templates for quality, testing, documentation, and releases
 - **Project Setup** - One-command installation script
 - **Makefile Generation** - Convenient commands for common tasks
@@ -47,6 +51,8 @@ make fix       # Apply ktlint format
 make test      # Run unit tests
 make setup     # Re-run ARCDevTools setup
 make hooks     # Re-install git hooks
+make skills    # Re-link Claude Code skills
+make mcp       # Configure MCP servers
 make clean     # Clean build artifacts
 ```
 
