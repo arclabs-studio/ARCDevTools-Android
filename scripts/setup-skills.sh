@@ -145,23 +145,23 @@ main() {
                 current_target=$(readlink "$target_link")
                 if [[ "$current_target" == "$rel_path" ]]; then
                     log_info "  $skill_name → already linked"
-                    ((skills_skipped++))
+                    skills_skipped=$((skills_skipped + 1))
                 else
                     # Update symlink
                     rm "$target_link"
                     ln -s "$rel_path" "$target_link"
                     log_success "  $skill_name → updated"
-                    ((skills_updated++))
+                    skills_updated=$((skills_updated + 1))
                 fi
             elif [[ -e "$target_link" ]]; then
                 # Something exists but it's not a symlink
                 log_warning "  $skill_name → skipped (file/directory exists)"
-                ((skills_skipped++))
+                skills_skipped=$((skills_skipped + 1))
             else
                 # Create new symlink
                 ln -s "$rel_path" "$target_link"
                 log_success "  $skill_name → linked"
-                ((skills_linked++))
+                skills_linked=$((skills_linked + 1))
             fi
         fi
     done
