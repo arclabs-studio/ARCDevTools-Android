@@ -5,7 +5,7 @@
 
 # These rules complement the main detekt.yml with Jetpack Compose-specific checks.
 
-compose:
+Compose:
   active: true
 
   ComposableAnnotationNaming:

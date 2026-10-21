@@ -24,6 +24,8 @@ ktlint_function_signature_body_expression_wrapping = multiline
 # Naming conventions
 ktlint_standard_package-name = enabled
 ktlint_standard_filename = enabled
+# @Composable functions are PascalCase by convention
+ktlint_function_naming_ignore_when_annotated_with = Composable
 
 # Import ordering
 ktlint_standard_import-ordering = enabled

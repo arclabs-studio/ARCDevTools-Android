@@ -522,7 +522,7 @@ style:
     active: false
   ForbiddenComment:
     active: true
-    values:
+    comments:
       - reason: 'TODO comments should be resolved before merging.'
         value: 'TODO:'
       - reason: 'FIXME comments should be resolved before merging.'
@@ -597,7 +597,6 @@ style:
   MultilineRawStringIndentation:
     active: true
     indentSize: 4
-    trimmingMethod: 'trimIndent'
   NestedClassesVisibility:
     active: true
   NewLineAtEndOfFile:
@@ -685,6 +684,10 @@ style:
   UnusedPrivateMember:
     active: true
     allowedNames: ''
+    # Private @Preview composables are used by tooling (compose-rules PreviewPublic wants them private)
+    ignoreAnnotated:
+      - 'Preview'
+      - 'PreviewTest'
   UnusedPrivateProperty:
     active: true
     allowedNames: '_|ignored|expected|serialVersionUID'
