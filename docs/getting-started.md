@@ -67,6 +67,26 @@ Replace each module's hand-written `android {}` configuration with the `arc.*` p
 `arc.android.hilt`, `arc.android.room`, `arc.jvm.library`). See the
 [Integration Guide](integration.md) for examples.
 
+## Claude Code Setup
+
+The setup script automatically installs Claude Code integration:
+
+- **`claude-hooks/`** — Auto-format on save, commit validation, git safety checks
+- **`.claude/settings.json`** — Hook registrations for Claude Code sessions
+- **`.claude/skills/`** — Symlinked from ARCKnowledge-Android (when available)
+
+To also configure MCP servers (Context7, Android Skills):
+
+```bash
+make mcp
+```
+
+Or run setup with the `--with-mcp` flag:
+
+```bash
+./ARCDevTools-Android/arc-setup --with-mcp
+```
+
 ## Verify Installation
 
 After setup completes, verify everything is working:

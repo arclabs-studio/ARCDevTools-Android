@@ -1,6 +1,6 @@
 # Integration Guide
 
-This guide covers the Gradle scaffolding ARCDevTools-Android installs (since v0.2.0) and how
+This guide covers the Gradle scaffolding ARCDevTools-Android installs (since v0.4.0) and how
 modules consume it.
 
 ## Table of Contents

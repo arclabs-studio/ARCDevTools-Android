@@ -1,7 +1,7 @@
 #!/bin/bash
 # ARCDevTools-Android - Lint Runner
 # Runs detekt and ktlint checks
-# Version: 1.0.0
+# Version: 1.1.0
 
 set -e
 

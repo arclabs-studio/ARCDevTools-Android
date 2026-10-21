@@ -1,6 +1,6 @@
 #!/bin/bash
 # ARCDevTools-Android - Git Hooks Installer
-# Version: 1.0.0
+# Version: 1.1.0
 
 set -e
 
