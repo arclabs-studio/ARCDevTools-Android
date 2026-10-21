@@ -4,7 +4,7 @@ Set up quality automation and the Gradle build scaffolding for your ARC Labs And
 
 ## Overview
 
-ARCDevTools-Android provides a streamlined setup process that configures ktlint, detekt, git hooks, automation scripts and (since v0.2.0) the Gradle scaffolding — version catalog, `build-logic` convention plugins and root build files — for your Android project. This guide walks you through the initial setup and basic usage.
+ARCDevTools-Android provides a streamlined setup process that configures ktlint, detekt, git hooks, automation scripts and (since v0.4.0) the Gradle scaffolding — version catalog, `build-logic` convention plugins and root build files — for your Android project. This guide walks you through the initial setup and basic usage.
 
 ## Requirements
 
