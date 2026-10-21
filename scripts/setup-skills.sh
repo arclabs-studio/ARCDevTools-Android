@@ -198,6 +198,7 @@ main() {
             log_warning "Consider adding symlinked skills to .gitignore:"
             echo ""
             echo "  # ARCKnowledge-Android skills (symlinks)"
+            echo "  .claude/skills/android-*"
             echo "  .claude/skills/arc-*"
             echo ""
         fi
