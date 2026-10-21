@@ -1,5 +1,5 @@
 // ARCDevTools-Android — build-logic settings
-// Version: 0.2.0
+// Version: 0.4.0
 //
 // Included build that hosts the arc.* convention plugins. It reads the consumer project's
 // version catalog so plugin versions stay in one place (gradle/libs.versions.toml).

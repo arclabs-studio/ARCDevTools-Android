@@ -1,5 +1,5 @@
 // ARCDevTools-Android — build-logic
-// Version: 0.2.0
+// Version: 0.4.0
 //
 // Convention plugins shared by every ARC Labs Android project. The third-party Gradle plugins
 // are compileOnly here: the root build.gradle.kts puts them on the build classpath with

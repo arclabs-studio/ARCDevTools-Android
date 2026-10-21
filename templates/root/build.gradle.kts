@@ -1,5 +1,5 @@
 // ARCDevTools-Android — root build template
-// Version: 0.2.0
+// Version: 0.4.0
 //
 // Puts every Gradle plugin used by the arc.* convention plugins on the build classpath with a
 // single version from gradle/libs.versions.toml. Modules apply the arc.* plugins only.
