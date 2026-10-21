@@ -11,6 +11,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.0] - 2026-10-21
+
+### Added
+
+- **Version catalog template** (`templates/gradle/libs.versions.toml`) with the ARC Android stack
+  2026, every coordinate verified on Google Maven / Maven Central / Gradle Plugin Portal:
+  AGP 9.4.0, Kotlin 2.4.21, KSP 2.3.12, Hilt 2.60.1, Compose BOM 2026.09.00, material3
+  1.5.0-beta01, material3-adaptive 1.3.0 (+ adaptive-navigation3), Navigation 3 1.2.0,
+  lifecycle-viewmodel-navigation3 2.11.0, Room 3 3.0.3, DataStore 1.2.1, kotlinx.serialization
+  1.12.0, coroutines 1.11.0, Coil 3.6.3, Firebase BoM 35.0.2, Credential Manager 1.6.0 + googleid
+  1.2.1, RevenueCat 10.28.1, maps-compose 9.0.1, JUnit 5.14.4 + android-junit5 2.0.2, Turbine,
+  Robolectric 4.17, Compose Preview Screenshot Testing 0.0.1-alpha16, detekt 1.23.8 +
+  compose-rules 0.4.28, ktlint 1.8.0 (org.jlleitschuh.gradle.ktlint 14.2.0)
+- **Convention plugins** (`templates/build-logic/`): `arc.android.application`,
+  `arc.android.library`, `arc.android.feature`, `arc.android.compose`, `arc.android.hilt`,
+  `arc.android.room`, `arc.jvm.library`, `arc.android.lint` — AGP 9 built-in Kotlin and new DSL,
+  compileSdk 37 / targetSdk 36 / minSdk 26, Java/Kotlin 17, Kotlin `allWarningsAsErrors`, Android
+  Lint `warningsAsErrors` + `abortOnError`, KSP only, JUnit 5 platform, JaCoCo (AGP native
+  coverage) with an 80% line-coverage gate on `check`, detekt + ktlint on every module
+- **Root templates** (`templates/root/`): `settings.gradle.kts` (includes `build-logic`,
+  repositories, foojay toolchain resolver), `build.gradle.kts`, `gradle.properties`,
+  `gradle-daemon-jvm.properties` (Gradle daemon on JDK 21) and an Android `.gitignore`
+- **`android-ci.yml` workflow**: `./gradlew build`, `validateDebugScreenshotTest`, detekt +
+  ktlint, JDK 17/21, Gradle cache
+- **arc-setup**: `--with-gradle`, `--no-gradle` and `--force-gradle` to install the Gradle
+  scaffolding idempotently and set the Gradle wrapper to 9.8.2
+
+### Changed
+
+- `arc-setup` version aligned with the repository release (0.2.0)
+- Documentation updated for the Gradle scaffolding (`integration.md` rewritten,
+  `getting-started.md`, `ci-cd.md`, `troubleshooting.md`, `README.md`)
+
+### Fixed
+
+- `configs/detekt.yml`: removed `MultilineRawStringIndentation.trimmingMethod` (not a detekt
+  1.23.x property) and renamed `ForbiddenComment.values` to `comments` (deprecated key);
+  private `@Preview`/`@PreviewTest` functions no longer reported by `UnusedPrivateMember`
+- `configs/detekt-compose.yml`: rule set id is `Compose` (was `compose`, rejected by detekt
+  config validation)
+- `configs/.editorconfig`: `@Composable` functions are exempt from ktlint's function-naming rule
+- Docs: `dependencyResolution` typo in the settings example, outdated detekt / compose-rules
+  versions, version references to a non-existent v1.0
+
+---
+
 ## [0.1.0] - 2026-02-25
 
 ### Initial Release
@@ -146,5 +192,6 @@ git commit -m "chore: integrate ARCDevTools-Android v0.1.0"
 
 ---
 
-[Unreleased]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/arclabs-studio/ARCDevTools-Android/releases/tag/v0.1.0

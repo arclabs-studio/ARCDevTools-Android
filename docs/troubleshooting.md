@@ -9,6 +9,7 @@ Common issues and solutions when using ARCDevTools-Android.
 - [Setup Issues](#setup-issues)
 - [ktlint Issues](#ktlint-issues)
 - [detekt Issues](#detekt-issues)
+- [Gradle Scaffolding Issues](#gradle-scaffolding-issues)
 - [Git Hook Issues](#git-hook-issues)
 - [CI/CD Issues](#cicd-issues)
 
@@ -113,20 +114,58 @@ detekt {
 
 ```toml
 [versions]
-detekt = "1.23.7"  # Minimum required version
+detekt = "1.23.8"
+composeRulesDetekt = "0.4.28"  # Last compose-rules line built for detekt 1.23.x
 ```
 
 ### detekt-compose rules not working
 
 **Cause:** The detekt-compose plugin dependency is missing.
 
-**Solution:** Add it to your module's `build.gradle.kts`:
+**Solution:** Apply `arc.android.compose` (or `arc.android.feature`), which adds the
+`io.nlopez.compose.rules:detekt` rule set and `config/detekt/detekt-compose.yml`. The rule set id
+in the config is `Compose:` (capital C).
 
-```kotlin
-dependencies {
-    detektPlugins("io.nlopez.compose.rules:detekt:0.4.22")
-}
-```
+### detekt fails with only a Java version as the message (e.g. "25.0.3")
+
+**Cause:** detekt 1.23.8 cannot run on JDK 25, the JBR bundled with current Android Studio.
+
+**Solution:** Keep `gradle/gradle-daemon-jvm.properties` (installed by `arc-setup --with-gradle`),
+which runs the Gradle daemon on JDK 21 regardless of `JAVA_HOME`.
+
+---
+
+## Gradle Scaffolding Issues
+
+### "Dependency ... requires libraries and applications that depend on it to compile against version 37"
+
+**Cause:** The 2026 AndroidX/Compose versions in the catalog declare `minCompileSdk` 37.
+
+**Solution:** Keep `compileSdk = "37"` in `gradle/libs.versions.toml` and install the SDK
+platform: `android sdk install platforms/android-37.0`.
+
+### `validateDebugScreenshotTest` fails: "the test task did not discover any tests"
+
+**Cause:** A module applies `arc.android.compose` but has no `@PreviewTest` in
+`src/screenshotTest/kotlin`. Gradle 9 fails test tasks that find no tests.
+
+**Solution:** Add a screenshot test for the module's previews and record references with
+`./gradlew updateDebugScreenshotTest`.
+
+### Coverage verification fails on a module with previews
+
+**Cause:** `@Preview` functions are never run by unit tests.
+
+**Solution:** Move previews to a `<Screen>Previews.kt` file; `*PreviewsKt` classes are excluded
+from coverage (they are covered by screenshot tests).
+
+### "WARNING: A restricted method in java.lang.System has been called"
+
+**Cause:** The Gradle launcher runs on JDK 24+ (for example Android Studio's JBR 25), which warns
+about Gradle's native library loading.
+
+**Solution:** `export GRADLE_OPTS="--enable-native-access=ALL-UNNAMED"` in your shell profile,
+or point `JAVA_HOME` at JDK 21.
 
 ---
 
