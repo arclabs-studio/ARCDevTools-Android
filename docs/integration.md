@@ -93,7 +93,11 @@ convention plugins.
 Android Lint disables only the version-freshness checks (`AndroidGradlePluginVersion`,
 `GradleDependency`, `NewerVersionAvailable`, `OldTargetApi`): versions and SDK levels are pinned
 in the catalog and bumped deliberately, and these checks would otherwise fail an unchanged build
-whenever something is released upstream.
+whenever something is released upstream. Google's Now in Android convention plugin disables
+`GradleDependency` for the same reason; `OldTargetApi` is off because targetSdk 36 deliberately
+sits below compileSdk 37 — review the list on every SDK bump. In `gradle.properties`,
+`android.sync.suppressAgpWarnings=UNSUPPORTED_PROJECT_OPTION_USE` silences only AGP's notice
+about the `android.experimental.enableScreenshotTest` flag that screenshot testing requires.
 
 ---
 

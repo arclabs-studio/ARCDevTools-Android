@@ -133,6 +133,17 @@ in the config is `Compose:` (capital C).
 **Solution:** Keep `gradle/gradle-daemon-jvm.properties` (installed by `arc-setup --with-gradle`),
 which runs the Gradle daemon on JDK 21 regardless of `JAVA_HOME`.
 
+### "Deprecated Gradle features were used in this build" with detekt applied
+
+**Cause:** detekt 1.23.8 calls `ReportingExtension.file(String)` and `Configuration.setVisible`,
+both deprecated in Gradle 9 (visible with `--warning-mode all`). AGP 9.4.0 also calls
+`Configuration.setVisible` on Gradle 9.8.2. Neither can be fixed from a template.
+
+**Decision (2026-10-21):** accepted. detekt 1.23.8 is the current stable release and ARC does not
+build on pre-release tooling (detekt 2.0 is still alpha). The notice is a Gradle-level deprecation,
+not a compiler, Lint, detekt or ktlint warning, so the zero-warnings gate is unaffected. Revisit
+when detekt 2.0 ships stable (compose-rules 0.5+ requires it).
+
 ---
 
 ## Gradle Scaffolding Issues
