@@ -48,7 +48,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `configs/detekt.yml`: removed `MultilineRawStringIndentation.trimmingMethod` (not a detekt
   1.23.x property) and renamed `ForbiddenComment.values` to `comments` (deprecated key);
-  private `@Preview`/`@PreviewTest` functions no longer reported by `UnusedPrivateMember`
+  private `@Preview`/`@PreviewTest` functions no longer reported by `UnusedPrivateMember`;
+  removed `MatchingDeclarationName.multiplatformTargetSuffixes` (added in 0.2.0, but detekt
+  1.23.8 rejects it: "is misspelled or does not exist")
 - `configs/.editorconfig`: `@Composable` functions are exempt from ktlint's function-naming rule
 - Docs: `dependencyResolution` typo in the settings example, outdated detekt / compose-rules
   versions, version references to a non-existent v1.0

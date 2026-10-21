@@ -334,8 +334,6 @@ naming:
   MatchingDeclarationName:
     active: true
     mustBeFirst: true
-    # detekt 1.23.8: supports platform-specific suffixes (e.g., MyClass.android.kt)
-    multiplatformTargetSuffixes: []
   MemberNameEqualsClassName:
     active: true
     ignoreOverridden: true
