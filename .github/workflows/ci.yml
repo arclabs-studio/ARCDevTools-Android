@@ -1,0 +1,132 @@
+name: CI
+
+# Repository CI for ARCDevTools-Android itself. The external verifier for a release:
+# fixtures/consumer is a minimal ARC Android app (flavors dev/pro, app + domain + core:ui +
+# feature:sample) that consumes this repository exactly like a real project does. arc-setup
+# generates its Gradle scaffolding from templates/ (nothing generated is committed), then the
+# same variant tasks as workflows/android-ci.yml run against it.
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  fixture:
+    name: Consumer fixture (arc-setup + Gradle)
+    runs-on: ubuntu-latest
+
+    env:
+      # Same pattern as workflows/android-ci.yml; the fixture is flavored (dev/pro).
+      ARC_VARIANT: DevDebug
+
+    defaults:
+      run:
+        working-directory: fixtures/consumer
+
+    steps:
+      # ARCKnowledge-Android is a nested submodule; scripts/setup-skills.sh fails closed without it.
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # JDK 17 is the bytecode target; JDK 21 runs the Gradle daemon
+      # (gradle/gradle-daemon-jvm.properties). The last version listed is the default.
+      - name: Set up JDK 17 and 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: |
+            17
+            21
+
+      - name: Setup Gradle (with dependency cache)
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: arc-setup (first run)
+        run: bash ./ARCDevTools-Android/arc-setup --with-gradle --no-workflows --no-mcp --variant "$ARC_VARIANT"
+
+      # The generated files are gitignored, so idempotency is checked by hashing them before and
+      # after a second run instead of with git status.
+      - name: arc-setup is idempotent
+        run: |
+          generated_files() {
+            find gradle/libs.versions.toml gradle/gradle-daemon-jvm.properties gradle/wrapper/gradle-wrapper.properties \
+              build-logic build.gradle.kts settings.gradle.kts gradle.properties Makefile .gitignore .editorconfig \
+              config .claude/settings.json -type f | sort
+          }
+          generated_files | xargs shasum -a 256 > "$RUNNER_TEMP/arc-setup-first.sha256"
+          bash ./ARCDevTools-Android/arc-setup --with-gradle --no-workflows --no-mcp --variant "$ARC_VARIANT"
+          generated_files | xargs shasum -a 256 > "$RUNNER_TEMP/arc-setup-second.sha256"
+          diff "$RUNNER_TEMP/arc-setup-first.sha256" "$RUNNER_TEMP/arc-setup-second.sha256"
+          test -z "$(git status --porcelain -- .)"
+
+      - name: Skills are linked
+        run: |
+          for skill in android-doctrine android-testing-doctrine android-verify arc-cli-android; do
+            test -f ".claude/skills/$skill/SKILL.md"
+          done
+
+      # assemble + lint (warningsAsErrors) + unit tests + JaCoCo (arc.coverage.minimum) + detekt + ktlint
+      - name: Build
+        run: ./gradlew build
+
+      - name: Lint, unit tests and coverage gate (${{ env.ARC_VARIANT }})
+        run: >-
+          ./gradlew
+          lint${{ env.ARC_VARIANT }}
+          test${{ env.ARC_VARIANT }}UnitTest
+          jacoco${{ env.ARC_VARIANT }}UnitTestCoverageVerification
+
+      - name: Validate screenshots (${{ env.ARC_VARIANT }})
+        run: ./gradlew validate${{ env.ARC_VARIANT }}ScreenshotTest
+
+      - name: Run detekt and ktlint
+        run: ./gradlew detekt ktlintCheck
+
+      # Explicit module depths: fixtures/consumer/ARCDevTools-Android is a symlink to the
+      # repository root, so a recursive glob would walk into it.
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fixture-reports
+          path: |
+            fixtures/consumer/*/build/reports/
+            fixtures/consumer/*/*/build/reports/
+            fixtures/consumer/*/build/test-results/
+            fixtures/consumer/*/*/build/test-results/
+          retention-days: 7
+
+  shell:
+    name: Shell scripts (bash -n + shellcheck)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Syntax check
+        run: |
+          for script in arc-setup scripts/*.sh hooks/*; do
+            bash -n "$script"
+          done
+
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
+
+      - name: shellcheck
+        run: shellcheck -S warning arc-setup scripts/*.sh hooks/*

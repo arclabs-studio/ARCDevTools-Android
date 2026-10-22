@@ -69,6 +69,12 @@ FavRes (flavors `dev`/`pro`) sets `ARC_VARIANT: DevDebug`, which makes CI run `l
 `validateDevDebugScreenshotTest`. Screenshot references then live in
 `<module>/src/screenshotTestDevDebug/reference`.
 
+Every Android module must declare the same flavors (same dimension and names). Gradle runs a task
+name such as `testDevDebugUnitTest` only in the modules that have it, so an unflavored library
+(variant `debug`) is silently skipped by the CI and Makefile tasks. Pure Kotlin/JVM modules have no
+variants; `build` covers them (`test`, `jacocoTestCoverageVerification`). `fixtures/consumer`
+shows the setup.
+
 Use the same value for the Makefile: `./ARCDevTools-Android/arc-setup --variant DevDebug`.
 Re-copying the workflows with `--with-workflows` resets `ARC_VARIANT` to `Debug`, so set it
 again afterwards.

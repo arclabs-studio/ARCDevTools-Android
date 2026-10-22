@@ -222,6 +222,27 @@ git submodule add /path/to/ARCDevTools-Android
 ./ARCDevTools-Android/arc-setup
 ```
 
+### Consumer Fixture and Repository CI
+
+`fixtures/consumer/` is a minimal ARC Android app (flavors `dev`/`pro`; modules `:app`, `:domain`,
+`:core:ui`, `:feature:sample` with Hilt, Navigation 3, Room 3 and a screenshot test) that consumes
+this repository like a real project. Only its own sources, `settings.gradle.kts`, `.gitignore`, the
+Gradle wrapper, the Room schema and the screenshot references are committed; the symlink
+`fixtures/consumer/ARCDevTools-Android -> ../..` lets `arc-setup` generate everything else from
+`templates/`. `.github/workflows/ci.yml` runs `arc-setup` twice (idempotency), then `./gradlew build`
+and the `DevDebug` variant tasks of `workflows/android-ci.yml`, plus `bash -n` and `shellcheck` on
+the scripts. A green run of this workflow is the verifier for a release. To reproduce it locally:
+
+```bash
+cd fixtures/consumer
+bash ./ARCDevTools-Android/arc-setup --with-gradle --no-workflows --no-mcp --variant DevDebug
+./gradlew build lintDevDebug testDevDebugUnitTest jacocoDevDebugUnitTestCoverageVerification
+./gradlew validateDevDebugScreenshotTest detekt ktlintCheck
+```
+
+Change a template, re-run `arc-setup` in the fixture (it re-syncs `build-logic/`; delete the other
+generated files to pick up catalog or root-file changes) and keep the fixture green.
+
 ---
 
 ## Questions?
