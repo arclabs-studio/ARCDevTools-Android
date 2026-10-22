@@ -5,7 +5,7 @@ Centralized quality automation and development tooling for ARC Labs Studio Andro
 ## Quick Links
 
 - [Getting Started](getting-started.md) - Installation and setup walkthrough
-- [Integration Guide](integration.md) - How to integrate with build.gradle.kts and libs.versions.toml
+- [Integration Guide](integration.md) - Version catalog, build-logic convention plugins and module setup
 - [Configuration](configuration.md) - Customize detekt and ktlint rules for your project
 - [CI/CD Guide](ci-cd.md) - Set up GitHub Actions workflows
 - [Troubleshooting](troubleshooting.md) - Common issues and solutions
@@ -16,6 +16,7 @@ Centralized quality automation and development tooling for ARC Labs Studio Andro
 
 ARCDevTools-Android provides standardized development tooling for ARC Labs Android projects, including:
 
+- **Gradle Scaffolding** - Version catalog, `build-logic` convention plugins (`arc.*`) and root build files
 - **ktlint Configuration** - Code style enforcement via .editorconfig with Compose rules
 - **detekt Configuration** - Static analysis with all rule categories and Compose-specific checks
 - **Git Hooks** - Pre-commit and pre-push hooks for automated quality checks
@@ -59,7 +60,7 @@ make clean     # Clean build artifacts
 ## Documentation Structure
 
 - **[getting-started.md](getting-started.md)** - Installation and initial setup
-- **[integration.md](integration.md)** - Detailed integration guide for build.gradle.kts
+- **[integration.md](integration.md)** - Gradle scaffolding: catalog, convention plugins, coverage, screenshot tests
 - **[configuration.md](configuration.md)** - How to customize detekt, ktlint, and git hooks
 - **[ci-cd.md](ci-cd.md)** - GitHub Actions workflow templates and setup
 - **[troubleshooting.md](troubleshooting.md)** - Solutions to common problems

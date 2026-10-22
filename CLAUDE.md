@@ -43,8 +43,8 @@ ARCDevTools-Android delivers three categories of tooling to downstream projects:
 git submodule add https://github.com/arclabs-studio/ARCDevTools-Android
 git submodule update --init --recursive
 
-# 2. Run setup (copies configs, hooks, Claude integration)
-./ARCDevTools-Android/arc-setup
+# 2. Run setup (copies configs, hooks, Claude integration, Gradle scaffolding)
+./ARCDevTools-Android/arc-setup --with-gradle
 
 # 3. Optional: configure MCP servers
 ./ARCDevTools-Android/arc-setup --with-mcp
@@ -69,6 +69,10 @@ PROJECT_ROOT/
 ├── .claude/
 │   ├── settings.json          ← copied from .claude/
 │   └── skills/                ← symlinked from ARCKnowledge-Android
+├── gradle/libs.versions.toml  ← from templates/gradle/ (--with-gradle)
+├── gradle/gradle-daemon-jvm.properties ← from templates/root/ (--with-gradle)
+├── build-logic/               ← arc.* convention plugins from templates/build-logic/ (--with-gradle)
+├── settings.gradle.kts, build.gradle.kts, gradle.properties, .gitignore ← from templates/root/ (--with-gradle)
 ├── Makefile                   ← auto-generated
 └── ARCDevTools-Android/       ← this submodule
 ```
@@ -95,6 +99,9 @@ make clean     # Clean build artifacts
 ./ARCDevTools-Android/arc-setup                    # Interactive mode
 ./ARCDevTools-Android/arc-setup --with-workflows   # Install GitHub Actions (non-interactive)
 ./ARCDevTools-Android/arc-setup --no-workflows     # Skip GitHub Actions
+./ARCDevTools-Android/arc-setup --with-gradle      # Install Gradle scaffolding (non-interactive)
+./ARCDevTools-Android/arc-setup --no-gradle        # Skip Gradle scaffolding
+./ARCDevTools-Android/arc-setup --force-gradle     # Gradle scaffolding, overwriting existing root files
 ./ARCDevTools-Android/arc-setup --with-mcp         # Configure MCP servers (non-interactive)
 ./ARCDevTools-Android/arc-setup --no-mcp           # Skip MCP configuration
 ./ARCDevTools-Android/arc-setup --help             # Show help
@@ -148,13 +155,13 @@ ARCKnowledge-Android is embedded as a Git submodule. `setup-skills.sh` symlinks 
 
 ## Requirements
 
-- **Kotlin** 2.0.21+
-- **Android Gradle Plugin** 8.0+
-- **Java** 17+
+- **Gradle** 9.8.2, **Android Gradle Plugin** 9.4.0, **Kotlin** 2.4.21 (pinned by the scaffolding)
+- **JDK** 21 to run Gradle (bytecode target 17)
+- **Android SDK** platform `android-37`
 - **Git** 2.30+
 - **jq** (for Claude hooks — `brew install jq`)
 - **ktlint** CLI (optional, for format-on-save — `brew install ktlint`)
 
 ## Version
 
-Current: **v0.3.0** | arc-setup: **v1.3.0**
+Current: **v0.4.0** | arc-setup: **v1.4.0**

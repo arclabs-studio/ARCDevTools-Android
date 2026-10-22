@@ -1,28 +1,24 @@
 # Getting Started with ARCDevTools-Android
 
-Set up quality automation for your ARC Labs Android project in minutes.
+Set up quality automation and the Gradle build scaffolding for your ARC Labs Android project in minutes.
 
 ## Overview
 
-ARCDevTools-Android provides a streamlined setup process that configures ktlint, detekt, git hooks, and automation scripts for your Android project. This guide walks you through the initial setup and basic usage.
+ARCDevTools-Android provides a streamlined setup process that configures ktlint, detekt, git hooks, automation scripts and (since v0.4.0) the Gradle scaffolding — version catalog, `build-logic` convention plugins and root build files — for your Android project. This guide walks you through the initial setup and basic usage.
 
 ## Requirements
 
 Before you begin, ensure you have:
 
-- **Kotlin 2.0+**
-- **Android Gradle Plugin 8.0+**
-- **Java 17** or later
-- **Android Studio** (Ladybug or later recommended)
+- **Gradle 9.8.2**, **Android Gradle Plugin 9.4.0**, **Kotlin 2.4.21** (installed by the Gradle scaffolding)
+- **JDK 21** to run Gradle (pinned by `gradle/gradle-daemon-jvm.properties`; Gradle downloads it if missing)
+- **Android SDK** with platform `android-37` (compileSdk) and build-tools 36+
+- **Android Studio** (optional; `./gradlew` and the `android` CLI are enough)
 - **Git 2.30+** for submodule support
 
 ## Installation Steps
 
-### Step 1: Configure Gradle Plugins
-
-Add ktlint and detekt plugins to your project. See [Integration Guide](integration.md) for detailed `build.gradle.kts` and `libs.versions.toml` setup.
-
-### Step 2: Add ARCDevTools-Android as Submodule
+### Step 1: Add ARCDevTools-Android as Submodule
 
 Navigate to your project root and add ARCDevTools-Android as a Git submodule:
 
@@ -44,7 +40,7 @@ git clone --recurse-submodules https://github.com/your-org/your-project
 git submodule update --init --recursive
 ```
 
-### Step 3: Run Setup
+### Step 2: Run Setup
 
 Navigate to your project root directory and run the setup script:
 
@@ -58,8 +54,18 @@ The setup tool will:
 1. Copy `.editorconfig` configuration to your project root
 2. Copy `detekt.yml` and `detekt-compose.yml` to `config/detekt/`
 3. Install pre-commit and pre-push git hooks
-4. Generate a `Makefile` with useful commands
-5. Optionally copy GitHub Actions workflows
+4. Optionally install the Gradle scaffolding (`--with-gradle`): `gradle/libs.versions.toml`,
+   `build-logic/` convention plugins, root `settings.gradle.kts` / `build.gradle.kts` /
+   `gradle.properties` / `.gitignore`, and the Gradle 9.8.2 wrapper version
+5. Generate a `Makefile` with useful commands
+6. Optionally copy GitHub Actions workflows
+
+### Step 3: Apply the Convention Plugins
+
+Replace each module's hand-written `android {}` configuration with the `arc.*` plugins
+(`arc.android.application`, `arc.android.library`, `arc.android.feature`, `arc.android.compose`,
+`arc.android.hilt`, `arc.android.room`, `arc.jvm.library`). See the
+[Integration Guide](integration.md) for examples.
 
 ## Claude Code Setup
 
@@ -84,6 +90,15 @@ Or run setup with the `--with-mcp` flag:
 ## Verify Installation
 
 After setup completes, verify everything is working:
+
+### Build
+
+```bash
+./gradlew build
+```
+
+Compiles every module with Kotlin and Android Lint warnings as errors, runs unit tests, enforces
+80% line coverage, and runs detekt and ktlint.
 
 ### Test Lint
 

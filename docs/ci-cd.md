@@ -17,7 +17,7 @@ This guide covers GitHub Actions configuration for ARC Labs Studio Android proje
 
 ## Overview
 
-ARCDevTools-Android provides 7 workflow templates optimized for Android projects. All quality checks run on `ubuntu-latest` (1x billing multiplier), keeping costs minimal.
+ARCDevTools-Android provides 8 workflow templates optimized for Android projects. All quality checks run on `ubuntu-latest` (1x billing multiplier), keeping costs minimal.
 
 ---
 
@@ -25,6 +25,7 @@ ARCDevTools-Android provides 7 workflow templates optimized for Android projects
 
 | Workflow | Runner | Purpose |
 |----------|--------|---------|
+| `android-ci.yml` | ubuntu-latest | `./gradlew build` (assemble, Lint, unit tests, 80% coverage gate, detekt, ktlint), `validateDebugScreenshotTest`, detekt + ktlint |
 | `quality.yml` | ubuntu-latest | ktlint, detekt, Markdown link check |
 | `tests.yml` | ubuntu-latest | Unit tests with Java 17 |
 | `docs.yml` | ubuntu-latest | Dokka documentation to GitHub Pages |
@@ -32,6 +33,20 @@ ARCDevTools-Android provides 7 workflow templates optimized for Android projects
 | `sync-develop.yml` | ubuntu-latest | Auto-sync main to develop |
 | `validate-release.yml` | ubuntu-latest | Tag validation and GitHub Release creation |
 | `release-drafter.yml` | ubuntu-latest | Auto-draft release notes from PRs |
+
+### android-ci.yml
+
+Requires the Gradle scaffolding (`arc-setup --with-gradle`). Every job installs JDK 17 and 21
+(`actions/setup-java`, Temurin; the daemon runs on 21 as pinned by
+`gradle/gradle-daemon-jvm.properties`) and caches Gradle with `gradle/actions/setup-gradle`.
+
+| Job | Command | Fails when |
+|-----|---------|------------|
+| Build, Lint, Unit Tests | `./gradlew build` | Kotlin or Lint warning, failing test, coverage < 80%, detekt or ktlint finding |
+| Screenshot Tests | `./gradlew validateDebugScreenshotTest` | A `@PreviewTest` differs from its committed reference image |
+| detekt + ktlint | `./gradlew detekt ktlintCheck` | Any static-analysis finding |
+
+Reports (tests, coverage, Lint, screenshots) are uploaded as artifacts.
 
 ---
 
@@ -82,7 +97,7 @@ Unlike iOS projects that require macOS runners (10x billing multiplier), Android
 
 | Runner | Multiplier | Android Workflows |
 |--------|------------|-------------------|
-| `ubuntu-latest` | 1x | All 7 workflows |
+| `ubuntu-latest` | 1x | All 8 workflows |
 
 This means Android CI/CD uses **10x fewer billing minutes** than iOS for the same operations.
 

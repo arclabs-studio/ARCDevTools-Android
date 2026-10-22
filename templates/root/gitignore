@@ -1,0 +1,41 @@
+# ARCDevTools-Android — Android .gitignore template
+# Version: 0.4.0
+# Stored without the leading dot so it does not apply to this repository; arc-setup installs
+# it as .gitignore when the project has none.
+
+# Gradle
+.gradle/
+build/
+.kotlin/
+
+# Local configuration (SDK path, signing)
+local.properties
+keystore.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Build outputs
+*.apk
+*.aab
+*.ap_
+*.dex
+output-metadata.json
+
+# Signing keys and secrets — never commit
+*.jks
+*.keystore
+*.p12
+*.pem
+*.key
+.env
+.env.*
+
+# OS / editors
+.DS_Store
+*.swp
+*.log
