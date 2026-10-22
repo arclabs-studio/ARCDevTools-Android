@@ -47,6 +47,22 @@ chmod +x ARCDevTools-Android/arc-setup
 git submodule update --init --recursive
 ```
 
+### "Claude Code skills setup failed"
+
+**Cause:** `arc-setup` (through `scripts/setup-skills.sh`) could not find
+`ARCDevTools-Android/ARCKnowledge-Android/.claude/skills/`, or one of the four ARC Android skills
+(`android-doctrine`, `android-testing-doctrine`, `android-verify`, `arc-cli-android`) is not
+linked with a `SKILL.md`. Usually the nested ARCKnowledge-Android submodule is not initialised.
+
+**Solution:**
+```bash
+git -C ARCDevTools-Android submodule update --init --recursive
+./ARCDevTools-Android/arc-setup
+```
+
+Pass `--allow-missing-skills` only to continue knowingly without the skills (for example on a CI
+runner that does not need them).
+
 ---
 
 ## ktlint Issues
@@ -114,19 +130,8 @@ ktlint_standard_context-receiver-wrapping = disabled
 
 **Cause:** The `maxIssues: 0` setting in detekt.yml means any issue fails the build.
 
-**Solution:** Either fix the issues or create a baseline:
-
-```bash
-./gradlew detektBaseline
-```
-
-Then reference the baseline in your `build.gradle.kts`:
-
-```kotlin
-detekt {
-    baseline = file("config/detekt/baseline.xml")
-}
-```
+**Solution:** Fix the findings. Baselines are forbidden in ARC projects; one needs explicit
+user approval and a Linear ticket (see [Configuration](configuration.md#baselines)).
 
 ### "Unknown rule" or "Invalid configuration"
 
@@ -176,6 +181,29 @@ when detekt 2.0 ships stable (compose-rules 0.5+ requires it).
 
 **Solution:** Keep `compileSdk = "37"` in `gradle/libs.versions.toml` and install the SDK
 platform: `android sdk install platforms/android-37.0`.
+
+### Task 'testDebugUnitTest' not found (or "is ambiguous")
+
+**Cause:** The project has product flavors. AGP names variant tasks after flavor + build type, so
+with flavors `dev`/`pro` there is no `testDebugUnitTest`; Gradle reports for example
+`task 'testDebugUnitTest' is ambiguous in project ':lib'. Candidates are: 'testDevDebugUnitTest',
+'testProDebugUnitTest'`. The same applies to `lintDebug`, `validateDebugScreenshotTest` and
+`jacocoDebugUnitTestCoverageVerification`.
+
+**Solution:** Use `test<Flavor><BuildType>UnitTest` (e.g. `testDevDebugUnitTest`). Regenerate the
+Makefile with the variant and set the same value in CI:
+
+```bash
+./ARCDevTools-Android/arc-setup --variant DevDebug
+```
+
+```yaml
+# .github/workflows/android-ci.yml
+env:
+  ARC_VARIANT: DevDebug
+```
+
+List the real task names with `./gradlew :app:tasks --all`.
 
 ### `validateDebugScreenshotTest` fails: "the test task did not discover any tests"
 

@@ -20,13 +20,23 @@ Before you begin, ensure you have:
 
 ### Step 1: Add ARCDevTools-Android as Submodule
 
-Navigate to your project root and add ARCDevTools-Android as a Git submodule:
+Navigate to your project root, add ARCDevTools-Android as a Git submodule and pin a release tag:
 
 ```bash
 cd /path/to/your/project
-git submodule add https://github.com/arclabs-studio/ARCDevTools-Android
-git submodule update --init --recursive
+git submodule add https://github.com/arclabs-studio/ARCDevTools-Android.git
+git -C ARCDevTools-Android checkout v0.5.0
+git -C ARCDevTools-Android submodule update --init --recursive
+git add .gitmodules ARCDevTools-Android
 ```
+
+`git submodule add` checks out the default branch (`main`); the `checkout` pins a release tag
+instead. The nested `submodule update` then initialises ARCKnowledge-Android at the commit that
+tag pins, and `git add` records the pinned commit in your project.
+
+> **Warning:** do not run `git submodule update --init --recursive` from your project root
+> before the `git add`: it resets `ARCDevTools-Android` to the commit recorded when the
+> submodule was added, undoing the tag checkout.
 
 This creates an `ARCDevTools-Android/` directory in your project with all configuration files and scripts.
 
@@ -49,6 +59,18 @@ cd /path/to/your/project
 ./ARCDevTools-Android/arc-setup
 ```
 
+Flavored projects pass the variant that CI and the Makefile should use (flavor + build type),
+for example FavRes with flavors `dev`/`pro`:
+
+```bash
+./ARCDevTools-Android/arc-setup --with-gradle --variant DevDebug
+```
+
+The default is `Debug`. The variant names the generated Makefile tasks (`test<Variant>UnitTest`,
+`lint<Variant>`, `jacoco<Variant>UnitTestCoverageVerification`,
+`validate<Variant>ScreenshotTest`). Set the same value as `ARC_VARIANT` in
+`.github/workflows/android-ci.yml` (see the [CI/CD Guide](ci-cd.md#flavored-projects-arc_variant)).
+
 The setup tool will:
 
 1. Copy `.editorconfig` configuration to your project root
@@ -57,8 +79,10 @@ The setup tool will:
 4. Optionally install the Gradle scaffolding (`--with-gradle`): `gradle/libs.versions.toml`,
    `build-logic/` convention plugins, root `settings.gradle.kts` / `build.gradle.kts` /
    `gradle.properties` / `.gitignore`, and the Gradle 9.8.2 wrapper version
-5. Generate a `Makefile` with useful commands
-6. Optionally copy GitHub Actions workflows
+5. Link the ARCKnowledge-Android skills into `.claude/skills/` and add them to `.gitignore`
+   (fails when the skills are missing; `--allow-missing-skills` downgrades that to a warning)
+6. Generate a `Makefile` with useful commands for the chosen variant
+7. Optionally copy GitHub Actions workflows
 
 ### Step 3: Apply the Convention Plugins
 
@@ -73,7 +97,8 @@ The setup script automatically installs Claude Code integration:
 
 - **`claude-hooks/`** — Auto-format on save, commit validation, git safety checks
 - **`.claude/settings.json`** — Hook registrations for Claude Code sessions
-- **`.claude/skills/`** — Symlinked from ARCKnowledge-Android (when available)
+- **`.claude/skills/`** — Symlinked from ARCKnowledge-Android; setup fails if the four ARC
+  Android skills cannot be linked (`--allow-missing-skills` to continue without them)
 
 To also configure MCP servers (Context7, Android Skills):
 
@@ -98,7 +123,7 @@ After setup completes, verify everything is working:
 ```
 
 Compiles every module with Kotlin and Android Lint warnings as errors, runs unit tests, enforces
-80% line coverage, and runs detekt and ktlint.
+the line-coverage minimum (`arc.coverage.minimum`, default 80%), and runs detekt and ktlint.
 
 ### Test Lint
 
@@ -135,15 +160,15 @@ Now that ARCDevTools-Android is installed, you can:
 
 ## Updating ARCDevTools-Android
 
-To get the latest configurations and scripts:
+Move the submodule to a newer release tag, then re-run setup:
 
 ```bash
-cd ARCDevTools-Android
-git pull origin main
-cd ..
-./ARCDevTools-Android/arc-setup  # Re-run setup to update configs
+git -C ARCDevTools-Android fetch --tags
+git -C ARCDevTools-Android checkout vX.Y.Z
+git -C ARCDevTools-Android submodule update --init --recursive
+./ARCDevTools-Android/arc-setup --variant <YourVariant>  # Re-run setup to update configs
 git add ARCDevTools-Android
-git commit -m "chore: update ARCDevTools-Android to latest version"
+git commit -m "chore: update ARCDevTools-Android to vX.Y.Z"
 ```
 
 ## See Also

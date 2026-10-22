@@ -1,5 +1,5 @@
 # ARCDevTools-Android — Version Catalog Template
-# Version: 0.4.0
+# Version: 0.5.0
 #
 # Copied to gradle/libs.versions.toml by arc-setup. Single source of truth for every
 # dependency and plugin version in an ARC Labs Android project — module build files never
@@ -36,6 +36,8 @@ coil = "3.6.3"
 
 # DI
 hilt = "2.60.1"
+# AndroidX Hilt extensions (hiltViewModel() for Compose); verified on Google Maven 2026-10-22.
+androidxHilt = "1.4.0"
 
 # Data
 room3 = "3.0.3"
@@ -107,6 +109,7 @@ coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version
 # --- DI ---
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
+androidx-hilt-lifecycle-viewmodel-compose = { module = "androidx.hilt:hilt-lifecycle-viewmodel-compose", version.ref = "androidxHilt" }
 
 # --- Data ---
 androidx-room3-runtime = { module = "androidx.room3:room3-runtime", version.ref = "room3" }

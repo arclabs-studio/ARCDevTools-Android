@@ -1,0 +1,76 @@
+# Release Drafter configuration for ARCDevTools-Android (read by .github/workflows/release-drafter.yml).
+# Categories and version resolver follow the ARC Labs standard used by the iOS packages; the
+# labels are created by scripts/setup-github-labels.sh.
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+
+categories:
+  - title: 'Features'
+    labels:
+      - 'feature'
+      - 'enhancement'
+  - title: 'Bug Fixes'
+    labels:
+      - 'fix'
+      - 'bugfix'
+      - 'bug'
+  - title: 'Documentation'
+    labels:
+      - 'documentation'
+      - 'docs'
+  - title: 'Architecture'
+    labels:
+      - 'architecture'
+      - 'refactor'
+  - title: 'Maintenance'
+    labels:
+      - 'chore'
+      - 'dependencies'
+  - title: 'Security'
+    labels:
+      - 'security'
+
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+change-title-escapes: '\<*_&' # Escape special characters in titles
+
+version-resolver:
+  major:
+    labels:
+      - 'major'
+      - 'breaking'
+  minor:
+    labels:
+      - 'minor'
+      - 'feature'
+      - 'enhancement'
+  patch:
+    labels:
+      - 'patch'
+      - 'fix'
+      - 'bugfix'
+      - 'documentation'
+      - 'chore'
+  default: patch
+
+template: |
+  ## What's Changed
+
+  $CHANGES
+
+  ## Installation
+
+  Add ARCDevTools-Android to your Android project as a submodule pinned to this release:
+
+  ```bash
+  git submodule add https://github.com/arclabs-studio/ARCDevTools-Android.git
+  git -C ARCDevTools-Android checkout v$RESOLVED_VERSION
+  git -C ARCDevTools-Android submodule update --init --recursive
+  git add .gitmodules ARCDevTools-Android
+  ./ARCDevTools-Android/arc-setup --with-gradle
+  ```
+
+  ## Contributors
+
+  $CONTRIBUTORS
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION

@@ -14,6 +14,11 @@ concurrency:
   group: tests-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Android variant for the unit-test task (test<Variant>UnitTest). Flavored projects set
+  # flavor + build type, e.g. DevDebug. Keep it in sync with `arc-setup --variant`.
+  ARC_VARIANT: Debug
+
 jobs:
   unit-tests:
     name: Unit Tests
@@ -33,7 +38,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest --daemon
+        run: ./gradlew test${{ env.ARC_VARIANT }}UnitTest --daemon
 
       - name: Upload test reports
         if: always()

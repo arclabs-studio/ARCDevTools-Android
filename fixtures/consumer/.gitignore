@@ -1,0 +1,41 @@
+# ARCDevTools-Android consumer fixture
+#
+# Everything arc-setup generates from templates/ stays out of git so the templates remain the
+# single source of truth; CI regenerates it with
+# `arc-setup --with-gradle --no-workflows --no-mcp --variant DevDebug`.
+# The Gradle wrapper (gradlew, gradlew.bat, gradle/wrapper/) is committed.
+
+# Gradle scaffolding written by arc-setup --with-gradle
+/build.gradle.kts
+/gradle.properties
+/gradle/libs.versions.toml
+/gradle/gradle-daemon-jvm.properties
+/build-logic/
+
+# Configs, Makefile and Claude Code integration written by arc-setup
+/.editorconfig
+/config/
+/Makefile
+/claude-hooks/
+/.claude/
+
+# ARCKnowledge-Android skills (symlinks created by arc-setup)
+.claude/skills/android-*
+.claude/skills/arc-*
+
+# Gradle and Kotlin outputs
+.gradle/
+build/
+.kotlin/
+
+# Local configuration (SDK path)
+local.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+captures/
+
+# OS / editors
+.DS_Store
+*.log

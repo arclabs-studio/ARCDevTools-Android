@@ -3,6 +3,7 @@ package com.arclabs.buildlogic
 import com.android.build.api.artifact.ScopedArtifact
 import com.android.build.api.variant.AndroidComponentsExtension
 import com.android.build.api.variant.ScopedArtifacts
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
@@ -17,8 +18,14 @@ import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.gradle.testing.jacoco.tasks.JacocoReportBase
 import java.math.BigDecimal
 
-/** Minimum line coverage enforced by `check` (ARC standard: 80% for apps). */
-private val MINIMUM_LINE_COVERAGE = BigDecimal("0.80")
+/** Gradle property with the minimum line coverage enforced by `check`, as a ratio in (0, 1]. */
+private const val MINIMUM_LINE_COVERAGE_PROPERTY = "arc.coverage.minimum"
+
+/**
+ * Minimum line coverage when [MINIMUM_LINE_COVERAGE_PROPERTY] is not set. ARC rule: 0.80 for every
+ * module inside an app repo; extracted ARC*-Android packages set the property to 1.00.
+ */
+private val DEFAULT_MINIMUM_LINE_COVERAGE = BigDecimal("0.80")
 
 /** Build type whose unit tests run (AGP 9 only creates unit tests for the tested build type). */
 private const val COVERED_BUILD_TYPE = "debug"
@@ -52,13 +59,37 @@ private val COVERAGE_EXCLUSIONS = listOf(
 )
 
 /**
+ * The minimum line coverage for this build: Gradle property `arc.coverage.minimum`
+ * (`gradle.properties` or `-Parc.coverage.minimum=…`), default 0.80. Fails configuration when the
+ * value is not a number in (0, 1].
+ */
+private fun Project.minimumLineCoverage(): BigDecimal {
+    val property = providers.gradleProperty(MINIMUM_LINE_COVERAGE_PROPERTY).orNull
+        ?: return DEFAULT_MINIMUM_LINE_COVERAGE
+    val minimum = property.trim().toBigDecimalOrNull()
+    if (minimum == null || minimum <= BigDecimal.ZERO || minimum > BigDecimal.ONE) {
+        throw GradleException(
+            "Gradle property '$MINIMUM_LINE_COVERAGE_PROPERTY' must be a ratio in (0, 1], " +
+                "e.g. 0.80 (apps) or 1.00 (ARC*-Android packages); found '$property'.",
+        )
+    }
+    return minimum
+}
+
+/** [BigDecimal] ratio as a percentage for task descriptions, e.g. 0.80 -> "80". */
+private fun BigDecimal.asPercent(): String = movePointRight(2).stripTrailingZeros().toPlainString()
+
+/**
  * JaCoCo coverage on top of AGP's native unit-test coverage (`enableUnitTestCoverage`).
  *
- * For the debug variant it registers `jacocoDebugUnitTestReport` (XML + HTML) and
- * `jacocoDebugUnitTestCoverageVerification` (>= 80% lines), and makes `check` depend on the
- * verification. Classes are taken from the variant's public `ScopedArtifact.CLASSES`.
+ * For every variant of the debug build type (`debug`, or e.g. `devDebug` with flavors) it
+ * registers `jacoco<Variant>UnitTestReport` (XML + HTML) and
+ * `jacoco<Variant>UnitTestCoverageVerification` (line coverage >= `arc.coverage.minimum`, default
+ * 80%), and makes `check` depend on the verification. Classes are taken from the variant's public
+ * `ScopedArtifact.CLASSES`.
  */
 internal fun Project.configureAndroidCoverage(androidComponents: AndroidComponentsExtension<*, *, *>) {
+    val minimumLineCoverage = minimumLineCoverage()
     pluginManager.apply("jacoco")
     // Robolectric loads classes through its own class loader: record them too.
     tasks.withType<Test>().configureEach {
@@ -103,13 +134,14 @@ internal fun Project.configureAndroidCoverage(androidComponents: AndroidComponen
             "jacoco${variantName}UnitTestCoverageVerification",
         ) {
             group = "verification"
-            description = "Fails when $variantName unit-test line coverage is below 80%."
+            description = "Fails when $variantName unit-test line coverage is below " +
+                "${minimumLineCoverage.asPercent()}% (arc.coverage.minimum)."
             configureInputs()
             violationRules {
                 rule {
                     limit {
                         counter = "LINE"
-                        minimum = MINIMUM_LINE_COVERAGE
+                        minimum = minimumLineCoverage
                     }
                 }
             }
@@ -124,8 +156,12 @@ internal fun Project.configureAndroidCoverage(androidComponents: AndroidComponen
     }
 }
 
-/** JaCoCo coverage for a pure Kotlin/JVM module: report + >= 80% line verification on `check`. */
+/**
+ * JaCoCo coverage for a pure Kotlin/JVM module: report + line verification on `check`
+ * (>= `arc.coverage.minimum`, default 80%).
+ */
 internal fun Project.configureJvmCoverage() {
+    val minimumLineCoverage = minimumLineCoverage()
     pluginManager.apply("jacoco")
     val report = tasks.named<JacocoReport>("jacocoTestReport") {
         dependsOn("test")
@@ -140,7 +176,7 @@ internal fun Project.configureJvmCoverage() {
             rule {
                 limit {
                     counter = "LINE"
-                    minimum = MINIMUM_LINE_COVERAGE
+                    minimum = minimumLineCoverage
                 }
             }
         }

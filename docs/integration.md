@@ -5,6 +5,7 @@ modules consume it.
 
 ## Table of Contents
 
+- [Adding the submodule](#adding-the-submodule)
 - [What arc-setup installs](#what-arc-setup-installs)
 - [Toolchain](#toolchain)
 - [Version Catalog](#version-catalog)
@@ -17,10 +18,28 @@ modules consume it.
 
 ---
 
+## Adding the submodule
+
+```bash
+git submodule add https://github.com/arclabs-studio/ARCDevTools-Android.git
+git -C ARCDevTools-Android checkout v0.5.0
+git -C ARCDevTools-Android submodule update --init --recursive
+git add .gitmodules ARCDevTools-Android
+```
+
+`git submodule add` checks out the default branch (`main`); the `checkout` pins a release tag
+instead. The nested `submodule update` then initialises ARCKnowledge-Android at the commit that
+tag pins, and `git add` records the pinned commit in your project. Do not run
+`git submodule update --init --recursive` from your project root before the `git add`: it resets
+`ARCDevTools-Android` to the commit recorded when the submodule was added.
+
+---
+
 ## What arc-setup installs
 
 ```bash
 ./ARCDevTools-Android/arc-setup --with-gradle    # or answer "y" to the Gradle prompt
+./ARCDevTools-Android/arc-setup --with-gradle --variant DevDebug    # flavored project
 ```
 
 | Source in ARCDevTools-Android | Installed as | Overwritten on re-run |
@@ -31,7 +50,7 @@ modules consume it.
 | `templates/root/settings.gradle.kts` | `settings.gradle.kts` | Only with `--force-gradle` |
 | `templates/root/build.gradle.kts` | `build.gradle.kts` | Only with `--force-gradle` |
 | `templates/root/gradle.properties` | `gradle.properties` | Only with `--force-gradle` |
-| `templates/root/gitignore` | `.gitignore` | Only with `--force-gradle` |
+| `templates/root/gitignore` | `.gitignore` | Only with `--force-gradle`; an existing `.gitignore` gets the `.claude/skills/android-*` and `.claude/skills/arc-*` patterns appended once |
 | — | `gradle/wrapper/gradle-wrapper.properties` | Always: Gradle 9.8.2 + checksum |
 
 After the first run, refresh the wrapper JAR once: `./gradlew wrapper`.
@@ -83,7 +102,7 @@ convention plugins.
 |-----------|----------|--------------------|
 | `arc.android.application` | `app` | `com.android.application`, SDK levels, Java/Kotlin 17, Kotlin `allWarningsAsErrors`, `arc.android.lint`, JUnit 5, JaCoCo gate, detekt + ktlint, core-ktx |
 | `arc.android.library` | `core:*` | Same baseline for `com.android.library` |
-| `arc.android.feature` | `feature:*` | `arc.android.library` + `arc.android.compose` + `arc.android.hilt` + kotlinx.serialization, Navigation 3 runtime, lifecycle ViewModel (Compose + Navigation 3) |
+| `arc.android.feature` | `feature:*` | `arc.android.library` + `arc.android.compose` + `arc.android.hilt` + kotlinx.serialization, Navigation 3 runtime, lifecycle ViewModel (Compose + Navigation 3), `hilt-lifecycle-viewmodel-compose` (`hiltViewModel()`) |
 | `arc.android.compose` | Any Compose module (after app/library) | Compose compiler, Compose BOM, Material 3, activity-compose, lifecycle-runtime-compose, Robolectric + Compose UI tests, screenshot testing, detekt Compose rules |
 | `arc.android.hilt` | Modules with DI (after app/library) | KSP + Hilt plugin, `hilt-android`, `ksp(hilt-compiler)` |
 | `arc.android.room` | `core:database` (after library) | KSP + Room 3 plugin, schemas exported to `<module>/schemas`, `room3-runtime`, `ksp(room3-compiler)`, `room3-testing` |
@@ -143,14 +162,17 @@ plugins {
 
 ## Coverage
 
-Android modules enable AGP's native unit-test coverage for the `debug` build type and get:
+Android modules enable AGP's native unit-test coverage for the `debug` build type and get, for
+each variant of it (`Debug`, or e.g. `DevDebug` / `ProDebug` with flavors):
 
-- `jacocoDebugUnitTestReport` — XML + HTML report.
-- `jacocoDebugUnitTestCoverageVerification` — fails below **80% line coverage**; `check` (and
-  therefore `build`) depends on it.
+- `jacoco<Variant>UnitTestReport` — XML + HTML report.
+- `jacoco<Variant>UnitTestCoverageVerification` — fails below the line-coverage minimum;
+  `check` (and therefore `build`) depends on it.
 
 JVM modules use Gradle's `jacocoTestReport` / `jacocoTestCoverageVerification` with the same
-threshold. Generated code (R, BuildConfig, Hilt/Dagger, Room `_Impl`, Compose singletons) is
+threshold. The minimum is the Gradle property `arc.coverage.minimum` (default `0.80`, set in the
+root `gradle.properties`): 0.80 for every module inside an app repo, 1.00 for extracted
+ARC*-Android packages. See [Configuration](configuration.md#coverage-threshold). Generated code (R, BuildConfig, Hilt/Dagger, Room `_Impl`, Compose singletons) is
 excluded, as are `@Preview` functions **kept in `*Previews.kt` files** — previews are covered by
 the screenshot tests, so keep them out of the screen's own file.
 
@@ -167,8 +189,13 @@ the screenshot tests, so keep them out of the screen's own file.
 ./gradlew validateDebugScreenshotTest   # compare against the references
 ```
 
+Flavored projects use the variant name, e.g. `updateDevDebugScreenshotTest` /
+`validateDevDebugScreenshotTest` (`make screenshot-update` / `make screenshot` after
+`arc-setup --variant DevDebug`); references are stored per variant in
+`src/screenshotTest<Variant>/reference`.
+
 Every module that applies `arc.android.compose` needs at least one `@PreviewTest`: Gradle 9
-fails `validateDebugScreenshotTest` when a test task discovers no tests.
+fails `validate<Variant>ScreenshotTest` when a test task discovers no tests.
 
 ---
 

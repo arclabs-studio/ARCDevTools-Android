@@ -10,8 +10,9 @@ import org.gradle.kotlin.dsl.getByType
 /**
  * `arc.android.library` — an Android library module (`core:*`).
  *
- * Same baseline as `arc.android.application`: SDK 36/26, Java/Kotlin 17, Kotlin and Lint
- * warnings as errors, JUnit 5, JaCoCo >= 80% on `check`, detekt + ktlint.
+ * Same baseline as `arc.android.application`: SDK 37/36/26 (compile/target/min), Java/Kotlin 17,
+ * Kotlin and Lint warnings as errors, JUnit 5, JaCoCo line coverage >= `arc.coverage.minimum`
+ * (default 80%) on `check`, detekt + ktlint.
  */
 class AndroidLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {

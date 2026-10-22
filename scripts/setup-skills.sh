@@ -7,8 +7,12 @@
 # skills, making them accessible from the project root.
 #
 # Usage:
-#   ./ARCDevTools-Android/scripts/setup-skills.sh
+#   ./ARCDevTools-Android/scripts/setup-skills.sh [--allow-missing-skills]
 #   ./scripts/setup-skills.sh (from ARCDevTools-Android directory)
+#
+# Fails closed: exits 1 when ARCKnowledge-Android (or its .claude/skills/) is missing, or when
+# any of the expected ARC Android skills is not linked with a SKILL.md afterwards.
+# --allow-missing-skills turns both failures into warnings and exits 0.
 #
 # Why this is needed:
 #   Claude Code only discovers skills in .claude/skills/ at the project root.
@@ -32,6 +36,36 @@ log_info() { echo -e "${BLUE}ℹ${NC} $1"; }
 log_success() { echo -e "${GREEN}✓${NC} $1"; }
 log_warning() { echo -e "${YELLOW}⚠${NC} $1"; }
 log_error() { echo -e "${RED}✗${NC} $1"; }
+
+# Skills every ARC Android project must get from ARCKnowledge-Android
+EXPECTED_SKILLS=(android-doctrine android-testing-doctrine android-verify arc-cli-android)
+
+ALLOW_MISSING_SKILLS=false
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --allow-missing-skills)
+            ALLOW_MISSING_SKILLS=true
+            shift
+            ;;
+        *)
+            log_error "Unknown option: $1"
+            echo "Usage: setup-skills.sh [--allow-missing-skills]"
+            exit 1
+            ;;
+    esac
+done
+
+# Fails (exit 1) or, with --allow-missing-skills, warns and stops successfully (exit 0).
+fail_or_warn() {
+    if [[ "$ALLOW_MISSING_SKILLS" == true ]]; then
+        log_warning "$1"
+        log_warning "Continuing without them (--allow-missing-skills)"
+        exit 0
+    fi
+    log_error "$1"
+    log_error "Re-run with --allow-missing-skills to continue without them"
+    exit 1
+}
 
 # Find project root (look for gradlew, build.gradle.kts, or .git)
 find_project_root() {
@@ -90,25 +124,21 @@ main() {
 
     # Find ARCKnowledge-Android
     ARCKNOWLEDGE_PATH=$(find_arcknowledge "$PROJECT_ROOT") || {
-        log_warning "No .claude/skills/ directory found in ARCKnowledge-Android"
-        log_info "Skills will be available after ARCKnowledge-Android is updated with skill definitions."
         log_info "Expected locations:"
         log_info "  - $PROJECT_ROOT/ARCKnowledge-Android/.claude/skills/"
         log_info "  - $PROJECT_ROOT/ARCDevTools-Android/ARCKnowledge-Android/.claude/skills/"
         echo ""
-        log_info "Make sure ARCDevTools-Android is properly set up as a submodule:"
-        log_info "  git submodule add https://github.com/arclabs-studio/ARCDevTools-Android.git ARCDevTools-Android"
-        log_info "  git submodule update --init --recursive"
-        exit 0
+        log_info "Make sure ARCDevTools-Android and its nested ARCKnowledge-Android are initialised:"
+        log_info "  git -C ARCDevTools-Android submodule update --init --recursive"
+        echo ""
+        fail_or_warn "ARCKnowledge-Android with a .claude/skills/ directory not found"
     }
     log_success "Found ARCKnowledge-Android: $ARCKNOWLEDGE_PATH"
 
     # Source skills directory
     SKILLS_SOURCE="$ARCKNOWLEDGE_PATH/.claude/skills"
     if [[ ! -d "$SKILLS_SOURCE" ]]; then
-        log_warning "Skills directory not found: $SKILLS_SOURCE"
-        log_info "Skills will be available after ARCKnowledge-Android is updated."
-        exit 0
+        fail_or_warn "Skills directory not found: $SKILLS_SOURCE"
     fi
 
     # Target directory
@@ -165,6 +195,18 @@ main() {
             fi
         fi
     done
+
+    # Every expected skill must now be a link with a SKILL.md behind it
+    local missing_skills=()
+    for skill_name in "${EXPECTED_SKILLS[@]}"; do
+        if [[ ! -L "$SKILLS_TARGET/$skill_name" ]] || [[ ! -f "$SKILLS_TARGET/$skill_name/SKILL.md" ]]; then
+            missing_skills+=("$skill_name")
+        fi
+    done
+    if [[ ${#missing_skills[@]} -gt 0 ]]; then
+        echo ""
+        fail_or_warn "Expected skills not linked with a SKILL.md in $SKILLS_TARGET: ${missing_skills[*]}"
+    fi
 
     echo ""
     echo "════════════════════════════════════════════════════════════════"

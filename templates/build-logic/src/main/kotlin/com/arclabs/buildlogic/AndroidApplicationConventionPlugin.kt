@@ -11,8 +11,9 @@ import org.gradle.kotlin.dsl.getByType
 /**
  * `arc.android.application` — an Android app module.
  *
- * compileSdk/targetSdk 36 · minSdk 26 · Java/Kotlin 17 · Kotlin warnings are errors · Lint
- * warnings are errors · JUnit 5 unit tests · JaCoCo >= 80% on `check` · detekt + ktlint.
+ * compileSdk 37 · targetSdk 36 · minSdk 26 · Java/Kotlin 17 · Kotlin warnings are errors · Lint
+ * warnings are errors · JUnit 5 unit tests · JaCoCo line coverage >= `arc.coverage.minimum`
+ * (default 80%) on `check` · detekt + ktlint.
  * targetSdk 36 makes edge-to-edge mandatory: the app calls `enableEdgeToEdge()` (activity-compose,
  * added by `arc.android.compose`) and handles insets.
  */

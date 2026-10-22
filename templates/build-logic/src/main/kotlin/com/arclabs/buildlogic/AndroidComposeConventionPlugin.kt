@@ -3,8 +3,10 @@ package com.arclabs.buildlogic
 import com.android.build.api.dsl.CommonExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.withType
 
 /**
  * `arc.android.compose` — Jetpack Compose on top of `arc.android.application` or
@@ -17,6 +19,9 @@ import org.gradle.kotlin.dsl.getByType
  *
  * Screenshot testing uses the standalone `com.android.compose.screenshot` plugin, the setup
  * documented for AGP < 9.5.0-alpha03. Migrate to AGP test suites when AGP is upgraded.
+ * A Compose module without a `src/screenshotTest` source set (e.g. `app`) still gets the
+ * `validate<Variant>ScreenshotTest` / `update<Variant>ScreenshotTest` tasks; they pass with nothing
+ * to compare instead of failing on Gradle 9's `failOnNoDiscoveredTests`.
  */
 class AndroidComposeConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -58,6 +63,17 @@ class AndroidComposeConventionPlugin : Plugin<Project> {
                 add("screenshotTestImplementation", composeBom)
                 add("screenshotTestImplementation", libs.library("compose-screenshot-validation-api"))
                 add("screenshotTestImplementation", libs.library("androidx-compose-ui-tooling"))
+            }
+            // The screenshot plugin's validate/update tasks are Gradle Test tasks that always see
+            // test sources, so Gradle 9 fails them in modules that have no @PreviewTest yet. Only
+            // modules without a screenshotTest source set are exempt: one that has sources but
+            // discovers no test is misconfigured and still fails.
+            if (!layout.projectDirectory.dir("src/screenshotTest").asFile.exists()) {
+                tasks.withType<Test>().configureEach {
+                    if (name.endsWith("ScreenshotTest")) {
+                        failOnNoDiscoveredTests.set(false)
+                    }
+                }
             }
             configureComposeStaticAnalysis()
         }
