@@ -12,6 +12,14 @@ jobs:
     name: Validate Branch Rules
     runs-on: ubuntu-latest
 
+    # Branch names and SHAs reach the shell through the environment, never through ${{ }}
+    # inside run:, so a crafted branch name cannot inject commands.
+    env:
+      SOURCE: ${{ github.head_ref }}
+      TARGET: ${{ github.base_ref }}
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,9 +28,6 @@ jobs:
 
       - name: Validate branch targeting
         run: |
-          TARGET="${{ github.base_ref }}"
-          SOURCE="${{ github.head_ref }}"
-
           echo "Validating branch rules..."
           echo "Source branch: $SOURCE"
           echo "Target branch: $TARGET"
@@ -63,8 +68,6 @@ jobs:
 
       - name: Validate branch naming
         run: |
-          SOURCE="${{ github.head_ref }}"
-
           echo "Validating branch naming convention..."
 
           # Check if branch follows naming convention
@@ -86,7 +89,7 @@ jobs:
           echo "Checking commit messages..."
 
           # Get commits in this PR
-          git log --format=%s ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} > /tmp/commits.txt
+          git log --format=%s "$BASE_SHA..$HEAD_SHA" > /tmp/commits.txt
 
           NON_CONVENTIONAL=0
 
@@ -122,8 +125,8 @@ jobs:
         run: |
           echo "## Git Flow Validation" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Source:** \`${{ github.head_ref }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Target:** \`${{ github.base_ref }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Source:** \`$SOURCE\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Target:** \`$TARGET\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           echo "### Validation Results" >> $GITHUB_STEP_SUMMARY
