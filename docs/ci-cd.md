@@ -8,6 +8,7 @@ This guide covers GitHub Actions configuration for ARC Labs Studio Android proje
 
 - [Overview](#overview)
 - [Available Workflows](#available-workflows)
+- [Flavored Projects (ARC_VARIANT)](#flavored-projects-arc_variant)
 - [Setup Instructions](#setup-instructions)
 - [Runner and Billing](#runner-and-billing)
 - [Configuration Reference](#configuration-reference)
@@ -25,7 +26,7 @@ ARCDevTools-Android provides 8 workflow templates optimized for Android projects
 
 | Workflow | Runner | Purpose |
 |----------|--------|---------|
-| `android-ci.yml` | ubuntu-latest | `./gradlew build` (assemble, Lint, unit tests, 80% coverage gate, detekt, ktlint), `validateDebugScreenshotTest`, detekt + ktlint |
+| `android-ci.yml` | ubuntu-latest | `./gradlew build` (assemble, Lint, unit tests, coverage gate, detekt, ktlint), the `${ARC_VARIANT}` Lint / unit-test / coverage / screenshot tasks, detekt + ktlint |
 | `quality.yml` | ubuntu-latest | ktlint, detekt, Markdown link check |
 | `tests.yml` | ubuntu-latest | Unit tests with Java 17 |
 | `docs.yml` | ubuntu-latest | Dokka documentation to GitHub Pages |
@@ -42,11 +43,35 @@ Requires the Gradle scaffolding (`arc-setup --with-gradle`). Every job installs 
 
 | Job | Command | Fails when |
 |-----|---------|------------|
-| Build, Lint, Unit Tests | `./gradlew build` | Kotlin or Lint warning, failing test, coverage < 80%, detekt or ktlint finding |
-| Screenshot Tests | `./gradlew validateDebugScreenshotTest` | A `@PreviewTest` differs from its committed reference image |
+| Build, Lint, Unit Tests | `./gradlew build`, then `lint<Variant>`, `test<Variant>UnitTest`, `jacoco<Variant>UnitTestCoverageVerification` | Kotlin or Lint warning, failing test, coverage below `arc.coverage.minimum` (default 80%), detekt or ktlint finding, or an `ARC_VARIANT` the project does not have |
+| Screenshot Tests | `./gradlew validate<Variant>ScreenshotTest` | A `@PreviewTest` differs from its committed reference image |
 | detekt + ktlint | `./gradlew detekt ktlintCheck` | Any static-analysis finding |
 
-Reports (tests, coverage, Lint, screenshots) are uploaded as artifacts.
+`<Variant>` is the workflow's `ARC_VARIANT` (default `Debug`). Reports (tests, coverage, Lint,
+screenshots) are uploaded as artifacts.
+
+---
+
+## Flavored Projects (ARC_VARIANT)
+
+AGP names variant tasks after flavor + build type. An unflavored project has `testDebugUnitTest`;
+a project with flavors `dev`/`pro` has `testDevDebugUnitTest` and `testProDebugUnitTest` instead,
+and `testDebugUnitTest` no longer resolves. `android-ci.yml` therefore reads the variant from a
+top-level environment variable:
+
+```yaml
+env:
+  ARC_VARIANT: Debug   # flavored projects: flavor + build type, e.g. DevDebug
+```
+
+FavRes (flavors `dev`/`pro`) sets `ARC_VARIANT: DevDebug`, which makes CI run `lintDevDebug`,
+`testDevDebugUnitTest`, `jacocoDevDebugUnitTestCoverageVerification` and
+`validateDevDebugScreenshotTest`. Screenshot references then live in
+`<module>/src/screenshotTestDevDebug/reference`.
+
+Use the same value for the Makefile: `./ARCDevTools-Android/arc-setup --variant DevDebug`.
+Re-copying the workflows with `--with-workflows` resets `ARC_VARIANT` to `Debug`, so set it
+again afterwards.
 
 ---
 

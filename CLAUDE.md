@@ -39,12 +39,14 @@ ARCDevTools-Android delivers three categories of tooling to downstream projects:
 ## How Downstream Projects Use This
 
 ```bash
-# 1. Add as submodule
-git submodule add https://github.com/arclabs-studio/ARCDevTools-Android
-git submodule update --init --recursive
+# 1. Add as submodule, pinned to a release tag (add lands on main; never -b develop)
+git submodule add https://github.com/arclabs-studio/ARCDevTools-Android.git
+git -C ARCDevTools-Android checkout v0.5.0
+git -C ARCDevTools-Android submodule update --init --recursive
+git add .gitmodules ARCDevTools-Android
 
 # 2. Run setup (copies configs, hooks, Claude integration, Gradle scaffolding)
-./ARCDevTools-Android/arc-setup --with-gradle
+./ARCDevTools-Android/arc-setup --with-gradle    # flavored projects: --variant DevDebug
 
 # 3. Optional: configure MCP servers
 ./ARCDevTools-Android/arc-setup --with-mcp
@@ -86,6 +88,10 @@ make lint      # Run detekt and ktlint
 make format    # Check formatting (dry-run)
 make fix       # Apply ktlint format
 make test      # Run unit tests
+make android-lint       # Run Android Lint (variant)
+make coverage           # Run the JaCoCo line-coverage gate (variant)
+make screenshot         # Validate screenshot tests (variant)
+make screenshot-update  # Record screenshot references (intended visual changes only)
 make setup     # Re-run ARCDevTools setup
 make hooks     # Re-install git hooks
 make skills    # Re-link Claude Code skills
@@ -104,6 +110,8 @@ make clean     # Clean build artifacts
 ./ARCDevTools-Android/arc-setup --force-gradle     # Gradle scaffolding, overwriting existing root files
 ./ARCDevTools-Android/arc-setup --with-mcp         # Configure MCP servers (non-interactive)
 ./ARCDevTools-Android/arc-setup --no-mcp           # Skip MCP configuration
+./ARCDevTools-Android/arc-setup --variant DevDebug # Variant for the Makefile tasks (default Debug)
+./ARCDevTools-Android/arc-setup --allow-missing-skills # Warn instead of failing when skills are missing
 ./ARCDevTools-Android/arc-setup --help             # Show help
 ```
 
@@ -151,7 +159,11 @@ Full template at `configs/mcp/claude-mcp.json`.
 | **ARCKnowledge-Android** (submodule) | Knowledge | Skills, agents, architecture docs, quality standards |
 | **ARCDevTools-Android** (this repo) | Delivery | Configs, hooks, scripts, CI workflows, setup automation |
 
-ARCKnowledge-Android is embedded as a Git submodule. `setup-skills.sh` symlinks its `.claude/skills/` into the downstream project so Claude Code can discover them.
+ARCKnowledge-Android is embedded as a Git submodule. `setup-skills.sh` symlinks its `.claude/skills/` into the downstream project so Claude Code can discover them, and fails (exit 1) when ARCKnowledge-Android or any of the four ARC Android skills is missing, unless `--allow-missing-skills` is passed.
+
+## Releases
+
+Release PR `develop → main`, then an annotated tag `vX.Y.Z` on `main`. Consumers pin tags. This repo runs the gitflow workflows on itself (`.github/workflows/`).
 
 ## Requirements
 
@@ -164,4 +176,4 @@ ARCKnowledge-Android is embedded as a Git submodule. `setup-skills.sh` symlinks 
 
 ## Version
 
-Current: **v0.4.0** | arc-setup: **v1.4.0**
+Current: **v0.5.0** | arc-setup: **v1.5.0**

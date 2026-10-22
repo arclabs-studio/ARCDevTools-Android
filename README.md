@@ -31,12 +31,14 @@ ARCDevTools-Android is the Android counterpart to [ARCDevTools](https://github.c
 ## Quick Start
 
 ```bash
-# 1. Add as submodule to your Android project
-git submodule add https://github.com/arclabs-studio/ARCDevTools-Android
-git submodule update --init --recursive
+# 1. Add as submodule to your Android project, pinned to a release tag
+git submodule add https://github.com/arclabs-studio/ARCDevTools-Android.git
+git -C ARCDevTools-Android checkout v0.5.0
+git -C ARCDevTools-Android submodule update --init --recursive
+git add .gitmodules ARCDevTools-Android
 
 # 2. Run setup (configs, git + Claude Code hooks, Makefile, Gradle scaffolding)
-./ARCDevTools-Android/arc-setup --with-gradle
+./ARCDevTools-Android/arc-setup --with-gradle    # flavored projects: --variant DevDebug
 
 # 3. Verify
 ./gradlew build
@@ -46,9 +48,14 @@ make test
 # 4. Commit integration
 git add .gitmodules ARCDevTools-Android/ .editorconfig config/ Makefile \
   gradle/ build-logic/ settings.gradle.kts build.gradle.kts gradle.properties \
-  claude-hooks/ .claude/settings.json
-git commit -m "chore: integrate ARCDevTools-Android v0.4.0"
+  .gitignore claude-hooks/ .claude/settings.json
+git commit -m "chore: integrate ARCDevTools-Android v0.5.0"
 ```
+
+`git submodule add` checks out the default branch (`main`); the `checkout` pins a release tag,
+the nested `submodule update` initialises ARCKnowledge-Android at the commit that tag pins, and
+`git add` records the pin. Do not run `git submodule update --init --recursive` from the project
+root before that `git add`: it resets the submodule to the commit recorded at add time.
 
 ---
 
@@ -65,7 +72,8 @@ git commit -m "chore: integrate ARCDevTools-Android v0.4.0"
 
 The convention plugins enforce compileSdk 37 / targetSdk 36 / minSdk 26, Java/Kotlin 17,
 Kotlin `allWarningsAsErrors`, Android Lint `warningsAsErrors` + `abortOnError`, KSP (never
-kapt), JUnit 5 on the JUnit Platform, JaCoCo line coverage >= 80% on `check`, detekt and ktlint.
+kapt), JUnit 5 on the JUnit Platform, JaCoCo line coverage >= `arc.coverage.minimum` (default
+80%) on `check`, detekt and ktlint.
 See the [Integration Guide](docs/integration.md).
 
 ### Configuration Files
@@ -104,6 +112,10 @@ make lint      # Run detekt and ktlint
 make format    # Check formatting (dry-run)
 make fix       # Apply ktlint format
 make test      # Run unit tests
+make android-lint       # Run Android Lint (variant)
+make coverage           # Run the JaCoCo line-coverage gate (variant)
+make screenshot         # Validate screenshot tests (variant)
+make screenshot-update  # Record screenshot references (intended visual changes only)
 make setup     # Re-run ARCDevTools setup
 make hooks     # Re-install git hooks
 make skills    # Re-link Claude Code skills
@@ -232,13 +244,16 @@ ARCDevTools-Android/
 ## Updating
 
 ```bash
-cd ARCDevTools-Android
-git pull origin main
-cd ..
-./ARCDevTools-Android/arc-setup
+git -C ARCDevTools-Android fetch --tags
+git -C ARCDevTools-Android checkout vX.Y.Z
+git -C ARCDevTools-Android submodule update --init --recursive
+./ARCDevTools-Android/arc-setup --variant <YourVariant>
 git add ARCDevTools-Android
-git commit -m "chore: update ARCDevTools-Android"
+git commit -m "chore: update ARCDevTools-Android to vX.Y.Z"
 ```
+
+Releases are a release PR `develop → main` plus an annotated tag on `main`; consumers pin tags
+(see [Contributing](CONTRIBUTING.md#releases)).
 
 ---
 

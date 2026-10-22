@@ -30,9 +30,11 @@ ARCDevTools-Android provides standardized development tooling for ARC Labs Andro
 ## Installation
 
 ```bash
-# Add as submodule
-git submodule add https://github.com/arclabs-studio/ARCDevTools-Android
-git submodule update --init --recursive
+# Add as submodule, pinned to a release tag
+git submodule add https://github.com/arclabs-studio/ARCDevTools-Android.git
+git -C ARCDevTools-Android checkout v0.5.0
+git -C ARCDevTools-Android submodule update --init --recursive
+git add .gitmodules ARCDevTools-Android
 
 # Run setup
 ./ARCDevTools-Android/arc-setup
@@ -50,6 +52,10 @@ make lint      # Run detekt and ktlint
 make format    # Check formatting (dry-run)
 make fix       # Apply ktlint format
 make test      # Run unit tests
+make android-lint       # Run Android Lint (variant)
+make coverage           # Run the JaCoCo line-coverage gate (variant)
+make screenshot         # Validate screenshot tests (variant)
+make screenshot-update  # Record screenshot references (intended visual changes only)
 make setup     # Re-run ARCDevTools setup
 make hooks     # Re-install git hooks
 make skills    # Re-link Claude Code skills

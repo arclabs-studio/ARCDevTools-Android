@@ -11,6 +11,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.5.0] - 2026-10-22
+
+Audit hardening (independent audit of 2026-10-22).
+
+### Added
+
+- **`androidx.hilt:hilt-lifecycle-viewmodel-compose` 1.4.0** in the version catalog
+  (`androidxHilt` version, `androidx-hilt-lifecycle-viewmodel-compose` library; verified on Google
+  Maven 2026-10-22) and added by `arc.android.feature`, so feature modules can call
+  `hiltViewModel()` from Compose / Navigation 3 entries
+- **Variant parameter** for flavored projects: `android-ci.yml` reads a top-level
+  `ARC_VARIANT` (default `Debug`, e.g. `DevDebug`) and runs `lint${ARC_VARIANT}`,
+  `test${ARC_VARIANT}UnitTest`, `jacoco${ARC_VARIANT}UnitTestCoverageVerification` and
+  `validate${ARC_VARIANT}ScreenshotTest`; `arc-setup --variant <Name>` (validated: alphanumeric,
+  leading uppercase) writes the same task names into the Makefile
+- **Makefile targets** `android-lint`, `coverage`, `screenshot` and `screenshot-update` (variant
+  tasks); `make setup` re-runs arc-setup with the same `--variant`
+- **`arc.coverage.minimum` Gradle property**: the JaCoCo line-coverage minimum is no longer
+  hardcoded. Default `0.80` (set in the root `gradle.properties` template); extracted
+  ARC*-Android packages set `1.00`. Values outside (0, 1] fail configuration with a clear message
+- **`--allow-missing-skills`** for `scripts/setup-skills.sh` and `arc-setup`
+- `.claude/skills/android-*` and `.claude/skills/arc-*` in the root `.gitignore` template;
+  `arc-setup` also appends them, once, to an existing `.gitignore`
+- **Gitflow workflows on this repo** (dogfooding): `enforce-gitflow.yml`, `release-drafter.yml`,
+  `sync-develop.yml` and `validate-release.yml` copied unchanged into `.github/workflows/`, plus a
+  `.github/release-drafter.yml` config (ARC standard categories, Android submodule install
+  snippet), which `release-drafter.yml` requires
+- Docs: flavored projects / `ARC_VARIANT` (`ci-cd.md`, `getting-started.md`), coverage threshold
+  (`configuration.md`, `integration.md`), troubleshooting entries for "Task 'testDebugUnitTest'
+  not found / ambiguous" and "Claude Code skills setup failed", release model in
+  `CONTRIBUTING.md` (release PR `develop → main` + annotated tag on `main`; consumers pin tags)
+- Consumer fixture + repo CI: _to be completed_
+
+### Changed
+
+- `scripts/setup-skills.sh` fails closed: missing ARCKnowledge-Android, a missing
+  `.claude/skills/` directory, or any of `android-doctrine`, `android-testing-doctrine`,
+  `android-verify`, `arc-cli-android` not linked with a `SKILL.md` exits 1 (previously exit 0);
+  unknown options exit 1. `arc-setup` stops with an error when skills setup fails
+- Install docs (`README.md`, `CLAUDE.md`, `docs/README.md`, `docs/getting-started.md`,
+  `docs/integration.md`) pin a release tag: `git submodule add` (lands on `main`), then
+  `git -C ARCDevTools-Android checkout v0.5.0`, the nested `submodule update`, and
+  `git add .gitmodules ARCDevTools-Android`; updating moves to a newer tag instead of
+  `git pull origin main`
+- `docs/configuration.md` / `docs/troubleshooting.md`: detekt baselines are forbidden and
+  `@Suppress` needs a documented false positive with approval (matches `android-doctrine`)
+- `arc-setup` bumped to 1.5.0; template headers to 0.5.0
+
+### Fixed
+
+- `android-ci.yml`, `tests.yml`, the Makefile and the `pre-push` hook hardcoded unflavored task
+  names (`testDebugUnitTest`, `validateDebugScreenshotTest`), which are ambiguous in flavored
+  projects; `tests.yml` reads `ARC_VARIANT` and `pre-push` runs `make test` when the generated
+  Makefile exists
+- Convention plugin KDoc: SDK levels are 37/36/26 (compile/target/min), not 36; coverage wording
+  follows `arc.coverage.minimum`
+
+---
+
 ## [0.4.0] - 2026-10-21
 
 ### Added
@@ -282,7 +341,8 @@ git commit -m "chore: integrate ARCDevTools-Android v0.1.0"
 
 ---
 
-[Unreleased]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.1.0...v0.2.0

@@ -20,6 +20,13 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  # Android variant used by the variant-named Gradle tasks below (test<Variant>UnitTest,
+  # validate<Variant>ScreenshotTest, jacoco<Variant>UnitTestCoverageVerification,
+  # lint<Variant>). Unflavored projects keep Debug; flavored projects set flavor + build type,
+  # e.g. DevDebug for flavor "dev". Keep it in sync with `arc-setup --variant`.
+  ARC_VARIANT: Debug
+
 jobs:
   build:
     name: Build, Lint, Unit Tests
@@ -42,9 +49,18 @@ jobs:
       - name: Setup Gradle (with dependency cache)
         uses: gradle/actions/setup-gradle@v4
 
-      # assemble + lint (warningsAsErrors) + unit tests + JaCoCo >= 80% + detekt + ktlint
+      # assemble + lint (warningsAsErrors) + unit tests + JaCoCo (arc.coverage.minimum) + detekt + ktlint
       - name: Build
         run: ./gradlew build
+
+      # Already part of `build` (up-to-date here); named explicitly so a wrong ARC_VARIANT fails
+      # with "Task ... not found" instead of silently checking nothing.
+      - name: Lint, unit tests and coverage gate (${{ env.ARC_VARIANT }})
+        run: >-
+          ./gradlew
+          lint${{ env.ARC_VARIANT }}
+          test${{ env.ARC_VARIANT }}UnitTest
+          jacoco${{ env.ARC_VARIANT }}UnitTestCoverageVerification
 
       - name: Upload reports
         if: always()
@@ -76,9 +92,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       # Compares @PreviewTest renders with the reference images committed in
-      # <module>/src/screenshotTestDebug/reference (create them with updateDebugScreenshotTest).
-      - name: Validate screenshots
-        run: ./gradlew validateDebugScreenshotTest
+      # <module>/src/screenshotTest<Variant>/reference, e.g. src/screenshotTestDebug/reference or
+      # src/screenshotTestDevDebug/reference (create them with update<Variant>ScreenshotTest).
+      - name: Validate screenshots (${{ env.ARC_VARIANT }})
+        run: ./gradlew validate${{ env.ARC_VARIANT }}ScreenshotTest
 
       - name: Upload screenshot report
         if: always()

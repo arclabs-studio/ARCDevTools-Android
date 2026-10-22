@@ -8,6 +8,7 @@ Thank you for your interest in contributing to ARCDevTools-Android! This documen
 - [Branch Naming](#branch-naming)
 - [Conventional Commits](#conventional-commits)
 - [Pull Request Process](#pull-request-process)
+- [Releases](#releases)
 - [Code Quality Standards](#code-quality-standards)
 - [Development Setup](#development-setup)
 
@@ -133,6 +134,28 @@ ci(quality): add ktlint check to quality workflow
 - [ ] Updated CHANGELOG.md (if applicable)
 - [ ] Updated documentation (if applicable)
 - [ ] Self-reviewed
+
+---
+
+## Releases
+
+ARCDevTools-Android follows gitflow for releases:
+
+1. Merge the finished work into `develop` (feature PRs).
+2. Open a release PR `develop → main` with the `CHANGELOG.md` section and the version bumps
+   (`arc-setup` `VERSION`, template headers).
+3. After it merges, create an annotated tag on `main` and push it:
+   ```bash
+   git checkout main && git pull origin main
+   git tag -a vX.Y.Z -m "ARCDevTools-Android vX.Y.Z"
+   git push origin vX.Y.Z
+   ```
+4. `validate-release.yml` checks the pushed tag and publishes the GitHub Release.
+   `sync-develop.yml` already merged `main` back into `develop` when the release PR landed, and
+   `release-drafter.yml` keeps a draft of the next release notes from merged PRs.
+
+Consumers add the submodule from the default branch (`main`) and pin a release tag
+(`git -C ARCDevTools-Android checkout vX.Y.Z`); they never track `develop`.
 
 ---
 
