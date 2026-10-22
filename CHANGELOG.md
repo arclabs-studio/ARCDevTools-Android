@@ -41,6 +41,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `arc-setup` bumped to 1.4.0 (1.3.0 behaviour plus the Gradle scaffolding flags)
+- `ARCKnowledge-Android` submodule bumped to the 2026 stack refresh (PR #7, `1a51b85`): the
+  four Android skills (`android-doctrine`, `android-testing-doctrine`, `android-verify`,
+  `arc-cli-android`) now ship inside the submodule, so `setup-skills.sh` links them into
+  `<project>/.claude/skills/`
 - Documentation updated for the Gradle scaffolding (`integration.md` rewritten,
   `getting-started.md`, `ci-cd.md`, `troubleshooting.md`, `README.md`)
 
