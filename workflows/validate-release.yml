@@ -30,10 +30,13 @@ jobs:
           echo "Tag: $TAG"
           echo "Version: $VERSION"
 
+      # Tag-derived values reach the shell through env, never through ${{ }} inside run:,
+      # so a crafted tag name cannot inject commands (the format check below runs on the
+      # same value, but only after it is already safely in a variable).
       - name: Validate tag format
+        env:
+          TAG: ${{ steps.extract.outputs.tag }}
         run: |
-          TAG=${{ steps.extract.outputs.tag }}
-
           if [[ ! $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Invalid tag format: $TAG"
             echo "Expected format: vX.Y.Z (semantic versioning)"
@@ -43,9 +46,9 @@ jobs:
           echo "Tag format is valid"
 
       - name: Check CHANGELOG entry
+        env:
+          VERSION: ${{ steps.extract.outputs.version }}
         run: |
-          VERSION=${{ steps.extract.outputs.version }}
-
           if ! grep -q "## \[$VERSION\]" CHANGELOG.md; then
             echo "Warning: No CHANGELOG entry found for version $VERSION"
             echo "Please add release notes to CHANGELOG.md"
@@ -54,11 +57,11 @@ jobs:
           fi
 
       - name: Verify tag is on main branch
+        env:
+          TAG: ${{ steps.extract.outputs.tag }}
         run: |
-          TAG=${{ steps.extract.outputs.tag }}
-
           # Check if tag is reachable from main
-          if ! git branch -r --contains $TAG | grep -q 'origin/main'; then
+          if ! git branch -r --contains "$TAG" | grep -q 'origin/main'; then
             echo "Warning: Tag $TAG is not on main branch"
             echo "Releases should be tagged from main branch"
           else
@@ -67,11 +70,14 @@ jobs:
 
       - name: Generate validation summary
         if: always()
+        env:
+          TAG: ${{ steps.extract.outputs.tag }}
+          VERSION: ${{ steps.extract.outputs.version }}
         run: |
           echo "## Release Tag Validation" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Tag:** \`${{ steps.extract.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Version:** \`${{ steps.extract.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** \`$TAG\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`$VERSION\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Validation Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -88,11 +94,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # VERSION was validated as X.Y.Z by the validate-tag job; it still enters the shell via env.
       - name: Extract release notes
         id: notes
+        env:
+          VERSION: ${{ needs.validate-tag.outputs.version }}
         run: |
-          VERSION=${{ needs.validate-tag.outputs.version }}
-
           # Extract changelog section for this version
           if grep -q "## \[$VERSION\]" CHANGELOG.md; then
             # Get content between this version and next version header
@@ -118,12 +125,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate release summary
+        env:
+          TAG: ${{ needs.validate-tag.outputs.tag }}
+          VERSION: ${{ needs.validate-tag.outputs.version }}
         run: |
           echo "## Release Published" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Tag:** \`${{ needs.validate-tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Version:** \`${{ needs.validate-tag.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** \`$TAG\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`$VERSION\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "GitHub Release created successfully!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "View release: https://github.com/${{ github.repository }}/releases/tag/${{ needs.validate-tag.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "View release: https://github.com/$GITHUB_REPOSITORY/releases/tag/$TAG" >> $GITHUB_STEP_SUMMARY

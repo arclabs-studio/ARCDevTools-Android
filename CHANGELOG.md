@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `enforce-gitflow.yml` and `validate-release.yml` (templates and this repo's copies) interpolated
+  `github.head_ref` / `github.base_ref` and tag-derived outputs straight into `run:` shell, a
+  script-injection vector through a crafted branch or tag name. Those values now reach the shell
+  through `env:` and are read as quoted variables (found by the constitution review of 0.5.0)
+
 ---
 
 ## [0.5.0] - 2026-10-22
