@@ -77,6 +77,10 @@ Audit hardening (independent audit of 2026-10-22).
   under Gradle 9 (`failOnNoDiscoveredTests`) in Compose modules without a `src/screenshotTest`
   source set (e.g. `app`); those modules' screenshot tasks now pass with nothing to compare, while
   a module that has screenshot sources but discovers no test still fails (found by the fixture)
+- `release-drafter.yml` (template and this repo) grants `contents: write`, which release-drafter
+  needs to create the draft release; with `contents: read` the push-to-`main` run fails. Note: the
+  action reads `.github/release-drafter.yml` from the default branch, so PR runs fail until the
+  config has landed on `main`
 - Convention plugin KDoc: SDK levels are 37/36/26 (compile/target/min), not 36; coverage wording
   follows `arc.coverage.minimum`
 
