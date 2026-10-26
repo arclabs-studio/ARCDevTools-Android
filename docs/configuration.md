@@ -6,6 +6,7 @@ This guide covers how to customize ARCDevTools-Android configurations for your p
 
 - [Customizing detekt](#customizing-detekt)
 - [Customizing ktlint](#customizing-ktlint)
+- [Coverage Threshold](#coverage-threshold)
 - [Git Hooks](#git-hooks)
 - [Makefile](#makefile)
 
@@ -64,21 +65,11 @@ detekt {
 }
 ```
 
-### Baseline
+### Baselines
 
-To create a baseline for existing issues:
-
-```bash
-./gradlew detektBaseline
-```
-
-Then reference it:
-
-```kotlin
-detekt {
-    baseline = file("config/detekt/baseline.xml")
-}
-```
+Baselines are forbidden in ARC projects: detekt runs with `maxIssues: 0` and a finding is fixed,
+not recorded. A baseline needs explicit user approval and a Linear ticket that tracks its removal
+(see `android-doctrine`, rule 9 "Zero warnings").
 
 ---
 
@@ -113,14 +104,37 @@ project-root/
     └── .editorconfig          # Library-specific overrides
 ```
 
-### Suppress Rules Inline
+### Suppressing Findings
 
-Use `@Suppress` annotations for specific cases:
+Fix the finding instead. `@Suppress` is allowed only for a documented false positive, with a
+comment stating why and the user's approval (see `android-doctrine`, rule 9 "Zero warnings"):
 
 ```kotlin
+// False positive: <why the rule does not apply here>. Approved by <who>, <ticket>.
 @Suppress("ktlint:standard:max-line-length")
-val longString = "This is a very long string that exceeds the line length limit for a good reason"
+val longString = "..."
 ```
+
+---
+
+## Coverage Threshold
+
+The JaCoCo line-coverage gate on `check` reads its minimum from the Gradle property
+`arc.coverage.minimum`, a ratio in (0, 1]. The root `gradle.properties` template sets the ARC
+default:
+
+```properties
+# ARC rule: 0.80 for every module inside an app repo; 1.00 for extracted ARC*-Android packages.
+arc.coverage.minimum=0.80
+```
+
+- **App repos** (e.g. FavRes): keep `0.80`; it applies to every module, including `domain` and
+  `core:*`.
+- **Extracted ARC*-Android packages**: set `arc.coverage.minimum=1.00`.
+- A one-off run can override it: `./gradlew check -Parc.coverage.minimum=1.00`.
+
+When the property is absent the plugins use `0.80`. Any value that is not a number in (0, 1]
+fails the build at configuration time with a message naming the property.
 
 ---
 
@@ -161,6 +175,12 @@ rm .git/hooks/pre-push
 ---
 
 ## Makefile
+
+`arc-setup --variant <Name>` (default `Debug`) writes the variant into the variant-specific
+targets: `make test` (`test<Name>UnitTest`), `make android-lint` (`lint<Name>`),
+`make coverage` (`jacoco<Name>UnitTestCoverageVerification`), `make screenshot`
+(`validate<Name>ScreenshotTest`) and `make screenshot-update` (`update<Name>ScreenshotTest`).
+`make setup` re-runs arc-setup with the same variant.
 
 ### Adding Custom Targets
 

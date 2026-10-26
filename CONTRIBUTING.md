@@ -8,6 +8,7 @@ Thank you for your interest in contributing to ARCDevTools-Android! This documen
 - [Branch Naming](#branch-naming)
 - [Conventional Commits](#conventional-commits)
 - [Pull Request Process](#pull-request-process)
+- [Releases](#releases)
 - [Code Quality Standards](#code-quality-standards)
 - [Development Setup](#development-setup)
 
@@ -136,6 +137,28 @@ ci(quality): add ktlint check to quality workflow
 
 ---
 
+## Releases
+
+ARCDevTools-Android follows gitflow for releases:
+
+1. Merge the finished work into `develop` (feature PRs).
+2. Open a release PR `develop → main` with the `CHANGELOG.md` section and the version bumps
+   (`arc-setup` `VERSION`, template headers).
+3. After it merges, create an annotated tag on `main` and push it:
+   ```bash
+   git checkout main && git pull origin main
+   git tag -a vX.Y.Z -m "ARCDevTools-Android vX.Y.Z"
+   git push origin vX.Y.Z
+   ```
+4. `validate-release.yml` checks the pushed tag and publishes the GitHub Release.
+   `sync-develop.yml` already merged `main` back into `develop` when the release PR landed, and
+   `release-drafter.yml` keeps a draft of the next release notes from merged PRs.
+
+Consumers add the submodule from the default branch (`main`) and pin a release tag
+(`git -C ARCDevTools-Android checkout vX.Y.Z`); they never track `develop`.
+
+---
+
 ## Code Quality Standards
 
 ### Shell Scripts
@@ -198,6 +221,27 @@ git init
 git submodule add /path/to/ARCDevTools-Android
 ./ARCDevTools-Android/arc-setup
 ```
+
+### Consumer Fixture and Repository CI
+
+`fixtures/consumer/` is a minimal ARC Android app (flavors `dev`/`pro`; modules `:app`, `:domain`,
+`:core:ui`, `:feature:sample` with Hilt, Navigation 3, Room 3 and a screenshot test) that consumes
+this repository like a real project. Only its own sources, `settings.gradle.kts`, `.gitignore`, the
+Gradle wrapper, the Room schema and the screenshot references are committed; the symlink
+`fixtures/consumer/ARCDevTools-Android -> ../..` lets `arc-setup` generate everything else from
+`templates/`. `.github/workflows/ci.yml` runs `arc-setup` twice (idempotency), then `./gradlew build`
+and the `DevDebug` variant tasks of `workflows/android-ci.yml`, plus `bash -n` and `shellcheck` on
+the scripts. A green run of this workflow is the verifier for a release. To reproduce it locally:
+
+```bash
+cd fixtures/consumer
+bash ./ARCDevTools-Android/arc-setup --with-gradle --no-workflows --no-mcp --variant DevDebug
+./gradlew build lintDevDebug testDevDebugUnitTest jacocoDevDebugUnitTestCoverageVerification
+./gradlew validateDevDebugScreenshotTest detekt ktlintCheck
+```
+
+Change a template, re-run `arc-setup` in the fixture (it re-syncs `build-logic/`; delete the other
+generated files to pick up catalog or root-file changes) and keep the fixture green.
 
 ---
 

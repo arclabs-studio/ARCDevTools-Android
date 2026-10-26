@@ -1,0 +1,138 @@
+name: Android CI
+
+# Build, Android Lint, unit tests + coverage gate, screenshot validation and static analysis
+# for projects scaffolded with ARCDevTools-Android (arc.* convention plugins).
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+
+concurrency:
+  group: android-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Android variant used by the variant-named Gradle tasks below (test<Variant>UnitTest,
+  # validate<Variant>ScreenshotTest, jacoco<Variant>UnitTestCoverageVerification,
+  # lint<Variant>). Unflavored projects keep Debug; flavored projects set flavor + build type,
+  # e.g. DevDebug for flavor "dev". Keep it in sync with `arc-setup --variant`.
+  ARC_VARIANT: Debug
+
+jobs:
+  build:
+    name: Build, Lint, Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # JDK 17 is the bytecode target; JDK 21 runs the Gradle daemon
+      # (gradle/gradle-daemon-jvm.properties). The last version listed is the default.
+      - name: Set up JDK 17 and 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: |
+            17
+            21
+
+      - name: Setup Gradle (with dependency cache)
+        uses: gradle/actions/setup-gradle@v4
+
+      # assemble + lint (warningsAsErrors) + unit tests + JaCoCo (arc.coverage.minimum) + detekt + ktlint
+      - name: Build
+        run: ./gradlew build
+
+      # Already part of `build` (up-to-date here); named explicitly so a wrong ARC_VARIANT fails
+      # with "Task ... not found" instead of silently checking nothing.
+      - name: Lint, unit tests and coverage gate (${{ env.ARC_VARIANT }})
+        run: >-
+          ./gradlew
+          lint${{ env.ARC_VARIANT }}
+          test${{ env.ARC_VARIANT }}UnitTest
+          jacoco${{ env.ARC_VARIANT }}UnitTestCoverageVerification
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-reports
+          path: |
+            **/build/reports/
+            **/build/test-results/
+          retention-days: 7
+
+  screenshot-tests:
+    name: Screenshot Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17 and 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: |
+            17
+            21
+
+      - name: Setup Gradle (with dependency cache)
+        uses: gradle/actions/setup-gradle@v4
+
+      # Compares @PreviewTest renders with the reference images committed in
+      # <module>/src/screenshotTest<Variant>/reference, e.g. src/screenshotTestDebug/reference or
+      # src/screenshotTestDevDebug/reference (create them with update<Variant>ScreenshotTest).
+      - name: Validate screenshots (${{ env.ARC_VARIANT }})
+        run: ./gradlew validate${{ env.ARC_VARIANT }}ScreenshotTest
+
+      - name: Upload screenshot report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot-report
+          path: '**/build/reports/screenshotTest/'
+          retention-days: 7
+
+  static-analysis:
+    name: detekt + ktlint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17 and 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: |
+            17
+            21
+
+      - name: Setup Gradle (with dependency cache)
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run detekt and ktlint
+        run: ./gradlew detekt ktlintCheck
+
+      - name: Generate summary
+        if: always()
+        run: |
+          echo "## Static Analysis" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ job.status }}" == 'success' ]; then
+            echo "detekt and ktlint passed." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Violations found. Run \`./gradlew ktlintFormat\` and fix the detekt findings." >> "$GITHUB_STEP_SUMMARY"
+          fi

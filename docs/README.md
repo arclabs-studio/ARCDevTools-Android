@@ -5,7 +5,7 @@ Centralized quality automation and development tooling for ARC Labs Studio Andro
 ## Quick Links
 
 - [Getting Started](getting-started.md) - Installation and setup walkthrough
-- [Integration Guide](integration.md) - How to integrate with build.gradle.kts and libs.versions.toml
+- [Integration Guide](integration.md) - Version catalog, build-logic convention plugins and module setup
 - [Configuration](configuration.md) - Customize detekt and ktlint rules for your project
 - [CI/CD Guide](ci-cd.md) - Set up GitHub Actions workflows
 - [Troubleshooting](troubleshooting.md) - Common issues and solutions
@@ -16,6 +16,7 @@ Centralized quality automation and development tooling for ARC Labs Studio Andro
 
 ARCDevTools-Android provides standardized development tooling for ARC Labs Android projects, including:
 
+- **Gradle Scaffolding** - Version catalog, `build-logic` convention plugins (`arc.*`) and root build files
 - **ktlint Configuration** - Code style enforcement via .editorconfig with Compose rules
 - **detekt Configuration** - Static analysis with all rule categories and Compose-specific checks
 - **Git Hooks** - Pre-commit and pre-push hooks for automated quality checks
@@ -29,9 +30,11 @@ ARCDevTools-Android provides standardized development tooling for ARC Labs Andro
 ## Installation
 
 ```bash
-# Add as submodule
-git submodule add https://github.com/arclabs-studio/ARCDevTools-Android
-git submodule update --init --recursive
+# Add as submodule, pinned to a release tag
+git submodule add https://github.com/arclabs-studio/ARCDevTools-Android.git
+git -C ARCDevTools-Android checkout v0.5.0
+git -C ARCDevTools-Android submodule update --init --recursive
+git add .gitmodules ARCDevTools-Android
 
 # Run setup
 ./ARCDevTools-Android/arc-setup
@@ -49,6 +52,10 @@ make lint      # Run detekt and ktlint
 make format    # Check formatting (dry-run)
 make fix       # Apply ktlint format
 make test      # Run unit tests
+make android-lint       # Run Android Lint (variant)
+make coverage           # Run the JaCoCo line-coverage gate (variant)
+make screenshot         # Validate screenshot tests (variant)
+make screenshot-update  # Record screenshot references (intended visual changes only)
 make setup     # Re-run ARCDevTools setup
 make hooks     # Re-install git hooks
 make skills    # Re-link Claude Code skills
@@ -59,7 +66,7 @@ make clean     # Clean build artifacts
 ## Documentation Structure
 
 - **[getting-started.md](getting-started.md)** - Installation and initial setup
-- **[integration.md](integration.md)** - Detailed integration guide for build.gradle.kts
+- **[integration.md](integration.md)** - Gradle scaffolding: catalog, convention plugins, coverage, screenshot tests
 - **[configuration.md](configuration.md)** - How to customize detekt, ktlint, and git hooks
 - **[ci-cd.md](ci-cd.md)** - GitHub Actions workflow templates and setup
 - **[troubleshooting.md](troubleshooting.md)** - Solutions to common problems

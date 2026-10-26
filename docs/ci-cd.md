@@ -8,6 +8,7 @@ This guide covers GitHub Actions configuration for ARC Labs Studio Android proje
 
 - [Overview](#overview)
 - [Available Workflows](#available-workflows)
+- [Flavored Projects (ARC_VARIANT)](#flavored-projects-arc_variant)
 - [Setup Instructions](#setup-instructions)
 - [Runner and Billing](#runner-and-billing)
 - [Configuration Reference](#configuration-reference)
@@ -17,7 +18,7 @@ This guide covers GitHub Actions configuration for ARC Labs Studio Android proje
 
 ## Overview
 
-ARCDevTools-Android provides 7 workflow templates optimized for Android projects. All quality checks run on `ubuntu-latest` (1x billing multiplier), keeping costs minimal.
+ARCDevTools-Android provides 8 workflow templates optimized for Android projects. All quality checks run on `ubuntu-latest` (1x billing multiplier), keeping costs minimal.
 
 ---
 
@@ -25,6 +26,7 @@ ARCDevTools-Android provides 7 workflow templates optimized for Android projects
 
 | Workflow | Runner | Purpose |
 |----------|--------|---------|
+| `android-ci.yml` | ubuntu-latest | `./gradlew build` (assemble, Lint, unit tests, coverage gate, detekt, ktlint), the `${ARC_VARIANT}` Lint / unit-test / coverage / screenshot tasks, detekt + ktlint |
 | `quality.yml` | ubuntu-latest | ktlint, detekt, Markdown link check |
 | `tests.yml` | ubuntu-latest | Unit tests with Java 17 |
 | `docs.yml` | ubuntu-latest | Dokka documentation to GitHub Pages |
@@ -32,6 +34,50 @@ ARCDevTools-Android provides 7 workflow templates optimized for Android projects
 | `sync-develop.yml` | ubuntu-latest | Auto-sync main to develop |
 | `validate-release.yml` | ubuntu-latest | Tag validation and GitHub Release creation |
 | `release-drafter.yml` | ubuntu-latest | Auto-draft release notes from PRs |
+
+### android-ci.yml
+
+Requires the Gradle scaffolding (`arc-setup --with-gradle`). Every job installs JDK 17 and 21
+(`actions/setup-java`, Temurin; the daemon runs on 21 as pinned by
+`gradle/gradle-daemon-jvm.properties`) and caches Gradle with `gradle/actions/setup-gradle`.
+
+| Job | Command | Fails when |
+|-----|---------|------------|
+| Build, Lint, Unit Tests | `./gradlew build`, then `lint<Variant>`, `test<Variant>UnitTest`, `jacoco<Variant>UnitTestCoverageVerification` | Kotlin or Lint warning, failing test, coverage below `arc.coverage.minimum` (default 80%), detekt or ktlint finding, or an `ARC_VARIANT` the project does not have |
+| Screenshot Tests | `./gradlew validate<Variant>ScreenshotTest` | A `@PreviewTest` differs from its committed reference image |
+| detekt + ktlint | `./gradlew detekt ktlintCheck` | Any static-analysis finding |
+
+`<Variant>` is the workflow's `ARC_VARIANT` (default `Debug`). Reports (tests, coverage, Lint,
+screenshots) are uploaded as artifacts.
+
+---
+
+## Flavored Projects (ARC_VARIANT)
+
+AGP names variant tasks after flavor + build type. An unflavored project has `testDebugUnitTest`;
+a project with flavors `dev`/`pro` has `testDevDebugUnitTest` and `testProDebugUnitTest` instead,
+and `testDebugUnitTest` no longer resolves. `android-ci.yml` therefore reads the variant from a
+top-level environment variable:
+
+```yaml
+env:
+  ARC_VARIANT: Debug   # flavored projects: flavor + build type, e.g. DevDebug
+```
+
+FavRes (flavors `dev`/`pro`) sets `ARC_VARIANT: DevDebug`, which makes CI run `lintDevDebug`,
+`testDevDebugUnitTest`, `jacocoDevDebugUnitTestCoverageVerification` and
+`validateDevDebugScreenshotTest`. Screenshot references then live in
+`<module>/src/screenshotTestDevDebug/reference`.
+
+Every Android module must declare the same flavors (same dimension and names). Gradle runs a task
+name such as `testDevDebugUnitTest` only in the modules that have it, so an unflavored library
+(variant `debug`) is silently skipped by the CI and Makefile tasks. Pure Kotlin/JVM modules have no
+variants; `build` covers them (`test`, `jacocoTestCoverageVerification`). `fixtures/consumer`
+shows the setup.
+
+Use the same value for the Makefile: `./ARCDevTools-Android/arc-setup --variant DevDebug`.
+Re-copying the workflows with `--with-workflows` resets `ARC_VARIANT` to `Debug`, so set it
+again afterwards.
 
 ---
 
@@ -82,7 +128,7 @@ Unlike iOS projects that require macOS runners (10x billing multiplier), Android
 
 | Runner | Multiplier | Android Workflows |
 |--------|------------|-------------------|
-| `ubuntu-latest` | 1x | All 7 workflows |
+| `ubuntu-latest` | 1x | All 8 workflows |
 
 This means Android CI/CD uses **10x fewer billing minutes** than iOS for the same operations.
 

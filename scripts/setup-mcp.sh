@@ -58,11 +58,11 @@ SKIPPED=0
 log_info "Checking Context7 (library documentation)..."
 if echo "$CURRENT_MCPS" | grep -q "context7"; then
     log_success "context7 already configured"
-    ((SKIPPED++))
+    SKIPPED=$((SKIPPED + 1))
 else
     if claude mcp add --scope project context7 -- npx -y @upstash/context7-mcp@latest 2>/dev/null; then
         log_success "context7 registered"
-        ((ADDED++))
+        ADDED=$((ADDED + 1))
     else
         log_warning "Failed to register context7 — add manually:"
         echo "  claude mcp add context7 -- npx -y @upstash/context7-mcp@latest"
@@ -75,11 +75,11 @@ echo ""
 log_info "Checking Android Skills (Google official skills)..."
 if echo "$CURRENT_MCPS" | grep -q "android-skills"; then
     log_success "android-skills already configured"
-    ((SKIPPED++))
+    SKIPPED=$((SKIPPED + 1))
 else
     if claude mcp add --scope project android-skills -- npx -y android-skills-mcp 2>/dev/null; then
         log_success "android-skills registered"
-        ((ADDED++))
+        ADDED=$((ADDED + 1))
     else
         log_warning "Failed to register android-skills — add manually:"
         echo "  claude mcp add android-skills -- npx -y android-skills-mcp"

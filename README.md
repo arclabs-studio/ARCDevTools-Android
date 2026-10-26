@@ -3,7 +3,7 @@
 [![Quality](https://github.com/arclabs-studio/ARCDevTools-Android/actions/workflows/quality.yml/badge.svg)](https://github.com/arclabs-studio/ARCDevTools-Android/actions/workflows/quality.yml)
 [![Tests](https://github.com/arclabs-studio/ARCDevTools-Android/actions/workflows/tests.yml/badge.svg)](https://github.com/arclabs-studio/ARCDevTools-Android/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21-blue.svg)](https://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.4.21-blue.svg)](https://kotlinlang.org)
 
 Centralized quality tooling, configuration, and automation for **ARC Labs Studio** Android projects.
 
@@ -15,13 +15,14 @@ ARCDevTools-Android is the Android counterpart to [ARCDevTools](https://github.c
 
 | Feature | Tool | Description |
 |---------|------|-------------|
+| **Build Scaffolding** | Gradle | Version catalog, `build-logic` convention plugins (`arc.*`), root build files |
 | **Code Style** | ktlint | Enforced via `.editorconfig` with Compose rules |
 | **Static Analysis** | detekt | Full rule set + Compose-specific checks |
 | **Git Hooks** | Bash | Pre-commit (format + lint) and pre-push (tests) |
 | **Claude Code Hooks** | Bash | Auto-format, commit validation, git safety, session context |
 | **AI Skills** | Claude Code | Symlinked from ARCKnowledge-Android |
 | **MCP Setup** | CLI | Automated MCP server registration (Context7, Android Skills) |
-| **CI/CD** | GitHub Actions | 7 workflow templates for quality, tests, docs, releases |
+| **CI/CD** | GitHub Actions | 8 workflow templates for build, quality, tests, docs, releases |
 | **Setup** | `arc-setup` | One-command project configuration |
 | **Makefile** | Make | Convenient commands for common tasks |
 
@@ -30,25 +31,50 @@ ARCDevTools-Android is the Android counterpart to [ARCDevTools](https://github.c
 ## Quick Start
 
 ```bash
-# 1. Add as submodule to your Android project
-git submodule add https://github.com/arclabs-studio/ARCDevTools-Android
-git submodule update --init --recursive
+# 1. Add as submodule to your Android project, pinned to a release tag
+git submodule add https://github.com/arclabs-studio/ARCDevTools-Android.git
+git -C ARCDevTools-Android checkout v0.5.0
+git -C ARCDevTools-Android submodule update --init --recursive
+git add .gitmodules ARCDevTools-Android
 
-# 2. Run setup
-./ARCDevTools-Android/arc-setup
+# 2. Run setup (configs, git + Claude Code hooks, Makefile, Gradle scaffolding)
+./ARCDevTools-Android/arc-setup --with-gradle    # flavored projects: --variant DevDebug
 
 # 3. Verify
+./gradlew build
 make lint
 make test
 
 # 4. Commit integration
-git add .gitmodules ARCDevTools-Android/ .editorconfig config/ Makefile
-git commit -m "chore: integrate ARCDevTools-Android v1.0"
+git add .gitmodules ARCDevTools-Android/ .editorconfig config/ Makefile \
+  gradle/ build-logic/ settings.gradle.kts build.gradle.kts gradle.properties \
+  .gitignore claude-hooks/ .claude/settings.json
+git commit -m "chore: integrate ARCDevTools-Android v0.5.0"
 ```
+
+`git submodule add` checks out the default branch (`main`); the `checkout` pins a release tag,
+the nested `submodule update` initialises ARCKnowledge-Android at the commit that tag pins, and
+`git add` records the pin. Do not run `git submodule update --init --recursive` from the project
+root before that `git add`: it resets the submodule to the commit recorded at add time.
 
 ---
 
 ## Features
+
+### Gradle Scaffolding (`--with-gradle`)
+
+| File | Location | Purpose |
+|------|----------|---------|
+| `libs.versions.toml` | `gradle/` | ARC Android stack 2026: AGP 9.4.0, Kotlin 2.4.21, Compose BOM 2026.09.00, Navigation 3, Hilt, Room 3, Firebase, RevenueCat, JUnit 5... |
+| `gradle-daemon-jvm.properties` | `gradle/` | Runs the Gradle daemon on JDK 21 |
+| Convention plugins | `build-logic/` | `arc.android.application`, `arc.android.library`, `arc.android.feature`, `arc.android.compose`, `arc.android.hilt`, `arc.android.room`, `arc.jvm.library`, `arc.android.lint` |
+| Root build files | project root | `settings.gradle.kts`, `build.gradle.kts`, `gradle.properties`, `.gitignore` |
+
+The convention plugins enforce compileSdk 37 / targetSdk 36 / minSdk 26, Java/Kotlin 17,
+Kotlin `allWarningsAsErrors`, Android Lint `warningsAsErrors` + `abortOnError`, KSP (never
+kapt), JUnit 5 on the JUnit Platform, JaCoCo line coverage >= `arc.coverage.minimum` (default
+80%) on `check`, detekt and ktlint.
+See the [Integration Guide](docs/integration.md).
 
 ### Configuration Files
 
@@ -69,6 +95,7 @@ git commit -m "chore: integrate ARCDevTools-Android v1.0"
 
 | Workflow | Runner | Purpose |
 |----------|--------|---------|
+| `android-ci.yml` | ubuntu-latest | Build + Lint + unit tests + coverage, screenshot validation, detekt + ktlint |
 | `quality.yml` | ubuntu-latest | ktlint + detekt + Markdown lint |
 | `tests.yml` | ubuntu-latest | Unit tests with Java 17 |
 | `docs.yml` | ubuntu-latest | Dokka documentation to GitHub Pages |
@@ -85,6 +112,10 @@ make lint      # Run detekt and ktlint
 make format    # Check formatting (dry-run)
 make fix       # Apply ktlint format
 make test      # Run unit tests
+make android-lint       # Run Android Lint (variant)
+make coverage           # Run the JaCoCo line-coverage gate (variant)
+make screenshot         # Validate screenshot tests (variant)
+make screenshot-update  # Record screenshot references (intended visual changes only)
 make setup     # Re-run ARCDevTools setup
 make hooks     # Re-install git hooks
 make skills    # Re-link Claude Code skills
@@ -155,6 +186,7 @@ ARCDevTools-Android/
 │   ├── setup-github-labels.sh          # GitHub labels setup
 │   └── setup-branch-protection.sh      # Branch protection setup
 ├── workflows/
+│   ├── android-ci.yml                  # Build, Lint, tests, screenshots
 │   ├── quality.yml                     # Code quality checks
 │   ├── tests.yml                       # Unit tests
 │   ├── docs.yml                        # Documentation generation
@@ -163,6 +195,9 @@ ARCDevTools-Android/
 │   ├── validate-release.yml            # Release validation
 │   └── release-drafter.yml             # Release notes drafting
 ├── templates/
+│   ├── gradle/libs.versions.toml       # Version catalog
+│   ├── build-logic/                    # arc.* convention plugins
+│   ├── root/                           # settings, build, gradle.properties, .gitignore, daemon JVM
 │   ├── PULL_REQUEST_TEMPLATE.md        # PR template
 │   └── ISSUE_TEMPLATE/
 │       ├── bug_report.md               # Bug report template
@@ -175,7 +210,7 @@ ARCDevTools-Android/
 │   ├── configuration.md                # Customization guide
 │   ├── ci-cd.md                        # GitHub Actions guide
 │   ├── troubleshooting.md              # Common issues
-│   └── MIGRATION_V1_TO_V2.md          # Future migration guide
+│   └── MIGRATION_V1_TO_V2.md           # Future migration guide
 ├── ARCKnowledge-Android/               # Development standards (submodule)
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
@@ -187,9 +222,9 @@ ARCDevTools-Android/
 
 ## Requirements
 
-- **Kotlin** 2.0.21+
-- **Android Gradle Plugin** 8.0+
-- **Java** 17+
+- **Gradle** 9.8.2, **Android Gradle Plugin** 9.4.0, **Kotlin** 2.4.21 (pinned by the scaffolding)
+- **JDK** 21 to run Gradle (bytecode target 17)
+- **Android SDK** platform `android-37`
 - **Git** 2.30+
 
 ---
@@ -197,7 +232,7 @@ ARCDevTools-Android/
 ## Documentation
 
 - [Getting Started](docs/getting-started.md) - Installation and setup
-- [Integration Guide](docs/integration.md) - build.gradle.kts and libs.versions.toml
+- [Integration Guide](docs/integration.md) - Version catalog, convention plugins, coverage, screenshot tests
 - [Configuration](docs/configuration.md) - Customizing detekt and ktlint
 - [CI/CD Guide](docs/ci-cd.md) - GitHub Actions setup
 - [Troubleshooting](docs/troubleshooting.md) - Common issues and solutions
@@ -209,13 +244,16 @@ ARCDevTools-Android/
 ## Updating
 
 ```bash
-cd ARCDevTools-Android
-git pull origin main
-cd ..
-./ARCDevTools-Android/arc-setup
+git -C ARCDevTools-Android fetch --tags
+git -C ARCDevTools-Android checkout vX.Y.Z
+git -C ARCDevTools-Android submodule update --init --recursive
+./ARCDevTools-Android/arc-setup --variant <YourVariant>
 git add ARCDevTools-Android
-git commit -m "chore: update ARCDevTools-Android"
+git commit -m "chore: update ARCDevTools-Android to vX.Y.Z"
 ```
+
+Releases are a release PR `develop → main` plus an annotated tag on `main`; consumers pin tags
+(see [Contributing](CONTRIBUTING.md#releases)).
 
 ---
 

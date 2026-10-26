@@ -13,7 +13,7 @@ This guide will document the migration path from ARCDevTools-Android v1.x to v2.
 
 ## Current Version
 
-ARCDevTools-Android is currently at **v1.0.0**. Check the [CHANGELOG](../CHANGELOG.md) for the latest version and updates.
+ARCDevTools-Android is currently at **v0.5.0**. Check the [CHANGELOG](../CHANGELOG.md) for the latest version and updates.
 
 ---
 
