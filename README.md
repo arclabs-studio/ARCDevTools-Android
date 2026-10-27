@@ -33,7 +33,7 @@ ARCDevTools-Android is the Android counterpart to [ARCDevTools](https://github.c
 ```bash
 # 1. Add as submodule to your Android project, pinned to a release tag
 git submodule add https://github.com/arclabs-studio/ARCDevTools-Android.git
-git -C ARCDevTools-Android checkout v0.5.0
+git -C ARCDevTools-Android checkout v0.5.1
 git -C ARCDevTools-Android submodule update --init --recursive
 git add .gitmodules ARCDevTools-Android
 
@@ -49,7 +49,7 @@ make test
 git add .gitmodules ARCDevTools-Android/ .editorconfig config/ Makefile \
   gradle/ build-logic/ settings.gradle.kts build.gradle.kts gradle.properties \
   .gitignore claude-hooks/ .claude/settings.json
-git commit -m "chore: integrate ARCDevTools-Android v0.5.0"
+git commit -m "chore: integrate ARCDevTools-Android v0.5.1"
 ```
 
 `git submodule add` checks out the default branch (`main`); the `checkout` pins a release tag,
@@ -67,7 +67,7 @@ root before that `git add`: it resets the submodule to the commit recorded at ad
 |------|----------|---------|
 | `libs.versions.toml` | `gradle/` | ARC Android stack 2026: AGP 9.4.0, Kotlin 2.4.21, Compose BOM 2026.09.00, Navigation 3, Hilt, Room 3, Firebase, RevenueCat, JUnit 5... |
 | `gradle-daemon-jvm.properties` | `gradle/` | Runs the Gradle daemon on JDK 21 |
-| Convention plugins | `build-logic/` | `arc.android.application`, `arc.android.library`, `arc.android.feature`, `arc.android.compose`, `arc.android.hilt`, `arc.android.room`, `arc.jvm.library`, `arc.android.lint` |
+| Convention plugins | `build-logic/` | `arc.android.application`, `arc.android.library`, `arc.android.feature`, `arc.android.compose`, `arc.android.hilt`, `arc.android.room`, `arc.android.robolectric`, `arc.jvm.library`, `arc.android.lint` |
 | Root build files | project root | `settings.gradle.kts`, `build.gradle.kts`, `gradle.properties`, `.gitignore` |
 
 The convention plugins enforce compileSdk 37 / targetSdk 36 / minSdk 26, Java/Kotlin 17,
@@ -98,7 +98,7 @@ See the [Integration Guide](docs/integration.md).
 | `android-ci.yml` | ubuntu-latest | Build + Lint + unit tests + coverage, screenshot validation, detekt + ktlint |
 | `quality.yml` | ubuntu-latest | ktlint + detekt + Markdown lint |
 | `tests.yml` | ubuntu-latest | Unit tests with Java 17 |
-| `docs.yml` | ubuntu-latest | Dokka documentation to GitHub Pages |
+| `docs.yml` | ubuntu-latest | Dokka documentation to GitHub Pages (opt-in: `arc-setup --with-docs`) |
 | `enforce-gitflow.yml` | ubuntu-latest | Branch rules validation |
 | `sync-develop.yml` | ubuntu-latest | Auto-sync main to develop |
 | `validate-release.yml` | ubuntu-latest | Tag validation + GitHub Release creation |
@@ -189,7 +189,7 @@ ARCDevTools-Android/
 │   ├── android-ci.yml                  # Build, Lint, tests, screenshots
 │   ├── quality.yml                     # Code quality checks
 │   ├── tests.yml                       # Unit tests
-│   ├── docs.yml                        # Documentation generation
+│   ├── docs.yml                        # Documentation generation (opt-in, --with-docs)
 │   ├── enforce-gitflow.yml             # Git Flow validation
 │   ├── sync-develop.yml                # Branch sync
 │   ├── validate-release.yml            # Release validation
@@ -198,6 +198,7 @@ ARCDevTools-Android/
 │   ├── gradle/libs.versions.toml       # Version catalog
 │   ├── build-logic/                    # arc.* convention plugins
 │   ├── root/                           # settings, build, gradle.properties, .gitignore, daemon JVM
+│   ├── github/release-drafter.yml      # Release Drafter config (installed if absent)
 │   ├── PULL_REQUEST_TEMPLATE.md        # PR template
 │   └── ISSUE_TEMPLATE/
 │       ├── bug_report.md               # Bug report template

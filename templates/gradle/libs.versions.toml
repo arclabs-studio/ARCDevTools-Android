@@ -1,5 +1,5 @@
 # ARCDevTools-Android — Version Catalog Template
-# Version: 0.5.0
+# Version: 0.5.1
 #
 # Copied to gradle/libs.versions.toml by arc-setup. Single source of truth for every
 # dependency and plugin version in an ARC Labs Android project — module build files never
@@ -171,6 +171,8 @@ room3-gradlePlugin = { module = "androidx.room3:room3-gradle-plugin", version.re
 detekt-gradlePlugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 ktlint-gradlePlugin = { module = "org.jlleitschuh.gradle:ktlint-gradle", version.ref = "ktlintGradle" }
 android-junit5-gradlePlugin = { module = "de.mannodermaus.gradle.plugins:android-junit5", version.ref = "androidJunit5" }
+# build-logic sets the screenshot validation threshold on the plugin's task (arc.android.compose).
+compose-screenshot-gradlePlugin = { module = "com.android.compose.screenshot:screenshot-test-gradle-plugin", version.ref = "composeScreenshot" }
 
 [plugins]
 # Third-party / platform plugins
@@ -196,5 +198,6 @@ arc-android-feature = { id = "arc.android.feature" }
 arc-android-compose = { id = "arc.android.compose" }
 arc-android-hilt = { id = "arc.android.hilt" }
 arc-android-room = { id = "arc.android.room" }
+arc-android-robolectric = { id = "arc.android.robolectric" }
 arc-android-lint = { id = "arc.android.lint" }
 arc-jvm-library = { id = "arc.jvm.library" }

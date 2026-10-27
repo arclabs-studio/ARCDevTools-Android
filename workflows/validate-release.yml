@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -92,7 +92,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # VERSION was validated as X.Y.Z by the validate-tag job; it still enters the shell via env.
       - name: Extract release notes
@@ -114,7 +114,7 @@ jobs:
           echo "$NOTES" > /tmp/release-notes.md
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.validate-tag.outputs.tag }}
           name: Release ${{ needs.validate-tag.outputs.tag }}

@@ -1,6 +1,7 @@
 package com.arclabs.buildlogic
 
 import com.android.build.api.dsl.CommonExtension
+import com.android.compose.screenshot.tasks.PreviewScreenshotValidationTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.testing.Test
@@ -9,13 +10,21 @@ import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.withType
 
 /**
+ * Maximum fraction of differing pixels a screenshot may have and still match its reference:
+ * 0.05 %, about 20x the cross-platform rendering noise observed on CI (FavRes-Android: 60 of
+ * 2,592,000 pixels between macOS references and the Linux renderer) and far below any real
+ * visual change.
+ */
+private const val IMAGE_DIFFERENCE_THRESHOLD = 0.0005f
+
+/**
  * `arc.android.compose` — Jetpack Compose on top of `arc.android.application` or
  * `arc.android.library` (apply one of those first).
  *
  * Compose compiler plugin · Compose BOM + Material 3 (Expressive) · activity-compose and
- * lifecycle-runtime-compose · Robolectric + Compose UI tests (JUnit 4 rule run by the JUnit
- * Vintage engine) · Compose Preview Screenshot Testing (`screenshotTest` source set,
- * `validateDebugScreenshotTest`) · detekt Compose rules.
+ * lifecycle-runtime-compose · Robolectric (`arc.android.robolectric`) + Compose UI tests (JUnit 4
+ * rule run by the JUnit Vintage engine) · Compose Preview Screenshot Testing (`screenshotTest`
+ * source set, `validateDebugScreenshotTest`, 0.05 % pixel tolerance) · detekt Compose rules.
  *
  * Screenshot testing uses the standalone `com.android.compose.screenshot` plugin, the setup
  * documented for AGP < 9.5.0-alpha03. Migrate to AGP test suites when AGP is upgraded.
@@ -28,16 +37,11 @@ class AndroidComposeConventionPlugin : Plugin<Project> {
         with(target) {
             pluginManager.apply("org.jetbrains.kotlin.plugin.compose")
             pluginManager.apply("com.android.compose.screenshot")
+            pluginManager.apply("arc.android.robolectric")
 
             extensions.getByType<CommonExtension>().apply {
                 buildFeatures.compose = true
                 experimentalProperties["android.experimental.enableScreenshotTest"] = true
-                testOptions.unitTests.isIncludeAndroidResources = true
-                // Robolectric 4.17 sets FileDescriptor internals through jdk.internal.access,
-                // which java.base does not export to the test classpath on JDK 17+.
-                testOptions.unitTests.all { test ->
-                    test.jvmArgs("--add-exports=java.base/jdk.internal.access=ALL-UNNAMED")
-                }
             }
 
             dependencies {
@@ -53,9 +57,6 @@ class AndroidComposeConventionPlugin : Plugin<Project> {
 
                 add("testImplementation", composeBom)
                 add("testImplementation", libs.library("androidx-compose-ui-test-junit4"))
-                add("testImplementation", libs.library("robolectric"))
-                add("testImplementation", libs.library("junit4"))
-                add("testRuntimeOnly", libs.library("junit-vintage-engine"))
 
                 add("androidTestImplementation", composeBom)
                 add("androidTestImplementation", libs.library("androidx-compose-ui-test-junit4"))
@@ -73,6 +74,15 @@ class AndroidComposeConventionPlugin : Plugin<Project> {
                     if (name.endsWith("ScreenshotTest")) {
                         failOnNoDiscoveredTests.set(false)
                     }
+                }
+            }
+            // References recorded on macOS differ from the Linux CI renderer by a few dozen
+            // anti-aliased pixels. Plugin 0.0.1-alpha16 removed the imageDifferenceThreshold DSL and
+            // conventions the engine threshold to 0f (pixel-exact); the task property the DSL used
+            // to feed is still public, so the tolerance is set there.
+            pluginManager.withPlugin("com.android.compose.screenshot") {
+                tasks.withType<PreviewScreenshotValidationTask>().configureEach {
+                    testEngineInput.threshold.set(IMAGE_DIFFERENCE_THRESHOLD)
                 }
             }
             configureComposeStaticAnalysis()

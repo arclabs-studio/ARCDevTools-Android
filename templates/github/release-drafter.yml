@@ -1,0 +1,70 @@
+# ARCDevTools-Android release-drafter template
+# Version: 0.5.1
+#
+# Release Drafter configuration (read by .github/workflows/release-drafter.yml). Installed by
+# arc-setup to .github/release-drafter.yml when absent; edit freely afterwards (app-specific
+# categories, an Installation section, ...). Release Drafter reads it from the default branch
+# (main), so the workflow fails until the first release PR brings it there.
+# Categories and version resolver follow the ARC Labs standard; the labels are created by
+# scripts/setup-github-labels.sh.
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+
+categories:
+  - title: 'Features'
+    labels:
+      - 'feature'
+      - 'enhancement'
+  - title: 'Bug Fixes'
+    labels:
+      - 'fix'
+      - 'bugfix'
+      - 'bug'
+  - title: 'Documentation'
+    labels:
+      - 'documentation'
+      - 'docs'
+  - title: 'Architecture'
+    labels:
+      - 'architecture'
+      - 'refactor'
+  - title: 'Maintenance'
+    labels:
+      - 'chore'
+      - 'dependencies'
+  - title: 'Security'
+    labels:
+      - 'security'
+
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+change-title-escapes: '\<*_&' # Escape special characters in titles
+
+version-resolver:
+  major:
+    labels:
+      - 'major'
+      - 'breaking'
+  minor:
+    labels:
+      - 'minor'
+      - 'feature'
+      - 'enhancement'
+  patch:
+    labels:
+      - 'patch'
+      - 'fix'
+      - 'bugfix'
+      - 'documentation'
+      - 'chore'
+  default: patch
+
+template: |
+  ## What's Changed
+
+  $CHANGES
+
+  ## Contributors
+
+  $CONTRIBUTORS
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
