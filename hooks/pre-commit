@@ -1,6 +1,6 @@
 #!/bin/bash
 # ARCDevTools-Android Pre-commit Hook
-# Version: 1.1.0
+# Version: 1.2.0
 
 set -e
 
@@ -19,6 +19,81 @@ if [ "$SKIP_HOOKS" = "1" ]; then
   exit 0
 fi
 
+# Android environment preflight (identical in pre-commit and pre-push: keep them in sync). Git hooks inherit the environment of whatever runs git (an IDE,
+# a GUI client, an agent's non-login shell), which often lacks JAVA_HOME / ANDROID_HOME; Gradle
+# then fails before any check runs. Find a JDK if needed and stop with an explicit message
+# otherwise, instead of reporting the failure as a lint violation.
+arc_android_preflight() {
+  if [ -z "${JAVA_HOME:-}" ] && ! java -version >/dev/null 2>&1; then
+    local jdk_version="21"
+    if [ -f "gradle/gradle-daemon-jvm.properties" ]; then
+      jdk_version=$(sed -n 's/^toolchainVersion=//p' gradle/gradle-daemon-jvm.properties | head -n 1)
+      jdk_version="${jdk_version:-21}"
+    fi
+    local candidate=""
+    if [ -x /usr/libexec/java_home ]; then
+      candidate=$(/usr/libexec/java_home -v "$jdk_version" 2>/dev/null || true)
+    fi
+    if [ -z "$candidate" ]; then
+      # JDKs provisioned by Gradle from gradle-daemon-jvm.properties (foojay), e.g.
+      # ~/.gradle/jdks/eclipse_adoptium-21-aarch64-os_x.2/jdk-21.0.12.1+1/Contents/Home
+      local jdk
+      for jdk in "$HOME"/.gradle/jdks/*-"$jdk_version"-*/*/; do
+        if [ -x "${jdk}Contents/Home/bin/java" ]; then
+          candidate="${jdk}Contents/Home"
+        elif [ -x "${jdk}bin/java" ]; then
+          candidate="${jdk%/}"
+        fi
+        if [ -n "$candidate" ]; then
+          break
+        fi
+      done
+    fi
+    if [ -z "$candidate" ]; then
+      echo ""
+      echo "========================================================"
+      echo "  No JDK found (JAVA_HOME is not set, no java on PATH)"
+      echo "========================================================"
+      echo ""
+      echo "  Export JAVA_HOME (JDK ${jdk_version}) in the environment that runs git,"
+      echo "  e.g. export JAVA_HOME=\$(/usr/libexec/java_home -v ${jdk_version})"
+      echo ""
+      return 1
+    fi
+    export JAVA_HOME="$candidate"
+    echo "  JAVA_HOME not set, using $JAVA_HOME"
+  fi
+
+  if [ -z "${ANDROID_HOME:-}" ] && [ -z "${ANDROID_SDK_ROOT:-}" ] \
+    && ! grep -qs '^sdk\.dir=' local.properties; then
+    echo ""
+    echo "========================================================"
+    echo "  Android SDK not found"
+    echo "========================================================"
+    echo ""
+    echo "  ANDROID_HOME is not set and local.properties has no sdk.dir."
+    echo "  Export ANDROID_HOME in the environment that runs git"
+    echo "  (e.g. export ANDROID_HOME=\$HOME/Library/Android/sdk on macOS)."
+    echo ""
+    return 1
+  fi
+}
+
+# Runs a Gradle task quietly; on failure prints the end of its output (violations or the build
+# error) instead of discarding it.
+run_gradle() {
+  local output
+  output=$(mktemp)
+  if ./gradlew "$@" --daemon -q >"$output" 2>&1; then
+    rm -f "$output"
+    return 0
+  fi
+  echo ""
+  tail -n 40 "$output" | sed 's/^/    /'
+  rm -f "$output"
+  return 1
+}
+
 echo "Pre-commit: Checking code quality..."
 
 # Detect staged Kotlin files
@@ -32,11 +107,17 @@ fi
 echo "  Files to check:"
 echo "$STAGED_KT" | sed 's/^/    - /'
 
+if [ -f "./gradlew" ] && ! arc_android_preflight; then
+  echo "  Use 'SKIP_HOOKS=1 git commit' to skip (NOT recommended)"
+  echo ""
+  exit 1
+fi
+
 # 1. ktlint format (auto-fix)
 if [ -f "./gradlew" ]; then
   echo ""
   echo "  Running ktlint format..."
-  if ./gradlew ktlintFormat --daemon -q 2>/dev/null; then
+  if run_gradle ktlintFormat; then
     # Re-stage formatted files
     echo "$STAGED_KT" | xargs git add
     echo "  Formatting applied"
@@ -49,12 +130,12 @@ fi
 if [ -f "./gradlew" ]; then
   echo ""
   echo "  Running ktlint check..."
-  if ./gradlew ktlintCheck --daemon -q 2>/dev/null; then
+  if run_gradle ktlintCheck; then
     echo "  ktlint passed"
   else
     echo ""
     echo "========================================================"
-    echo "  ktlint found violations"
+    echo "  ktlint check failed (violations or Gradle error above)"
     echo "========================================================"
     echo ""
     echo "  Options:"
@@ -72,12 +153,12 @@ fi
 if [ -f "./gradlew" ]; then
   echo ""
   echo "  Running detekt..."
-  if ./gradlew detekt --daemon -q 2>/dev/null; then
+  if run_gradle detekt; then
     echo "  detekt passed"
   else
     echo ""
     echo "========================================================"
-    echo "  detekt found issues"
+    echo "  detekt failed (issues or Gradle error above)"
     echo "========================================================"
     echo ""
     echo "  Options:"

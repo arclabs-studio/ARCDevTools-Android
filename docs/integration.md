@@ -22,7 +22,7 @@ modules consume it.
 
 ```bash
 git submodule add https://github.com/arclabs-studio/ARCDevTools-Android.git
-git -C ARCDevTools-Android checkout v0.5.0
+git -C ARCDevTools-Android checkout v0.5.1
 git -C ARCDevTools-Android submodule update --init --recursive
 git add .gitmodules ARCDevTools-Android
 ```
@@ -103,9 +103,10 @@ convention plugins.
 | `arc.android.application` | `app` | `com.android.application`, SDK levels, Java/Kotlin 17, Kotlin `allWarningsAsErrors`, `arc.android.lint`, JUnit 5, JaCoCo gate, detekt + ktlint, core-ktx |
 | `arc.android.library` | `core:*` | Same baseline for `com.android.library` |
 | `arc.android.feature` | `feature:*` | `arc.android.library` + `arc.android.compose` + `arc.android.hilt` + kotlinx.serialization, Navigation 3 runtime, lifecycle ViewModel (Compose + Navigation 3), `hilt-lifecycle-viewmodel-compose` (`hiltViewModel()`) |
-| `arc.android.compose` | Any Compose module (after app/library) | Compose compiler, Compose BOM, Material 3, activity-compose, lifecycle-runtime-compose, Robolectric + Compose UI tests, screenshot testing, detekt Compose rules |
+| `arc.android.compose` | Any Compose module (after app/library) | Compose compiler, Compose BOM, Material 3, activity-compose, lifecycle-runtime-compose, `arc.android.robolectric`, Compose UI tests, screenshot testing (0.05 % pixel tolerance), detekt Compose rules |
 | `arc.android.hilt` | Modules with DI (after app/library) | KSP + Hilt plugin, `hilt-android`, `ksp(hilt-compiler)` |
-| `arc.android.room` | `core:database` (after library) | KSP + Room 3 plugin, schemas exported to `<module>/schemas`, `room3-runtime`, `ksp(room3-compiler)`, `room3-testing` |
+| `arc.android.room` | `core:database` (after library) | KSP + Room 3 plugin, schemas exported to `<module>/schemas`, `room3-runtime`, `ksp(room3-compiler)`, `room3-testing`, `androidx.test:core`, `arc.android.robolectric` |
+| `arc.android.robolectric` | Android modules with Robolectric tests but no Compose/Room (after app/library); applied by `arc.android.compose` and `arc.android.room` | Android resources on the unit-test classpath, Robolectric + JUnit 4 on the JUnit Vintage engine, JDK 17+ `--add-exports` |
 | `arc.jvm.library` | `domain` (pure Kotlin) | `org.jetbrains.kotlin.jvm`, Java/Kotlin 17, `allWarningsAsErrors`, standalone Android Lint, JUnit 5, JaCoCo gate, detekt + ktlint |
 | `arc.android.lint` | Applied by the others | Lint `warningsAsErrors`, `abortOnError`, `checkReleaseBuilds` |
 

@@ -29,7 +29,7 @@ ARCDevTools-Android provides 8 workflow templates optimized for Android projects
 | `android-ci.yml` | ubuntu-latest | `./gradlew build` (assemble, Lint, unit tests, coverage gate, detekt, ktlint), the `${ARC_VARIANT}` Lint / unit-test / coverage / screenshot tasks, detekt + ktlint |
 | `quality.yml` | ubuntu-latest | ktlint, detekt, Markdown link check |
 | `tests.yml` | ubuntu-latest | Unit tests with Java 17 |
-| `docs.yml` | ubuntu-latest | Dokka documentation to GitHub Pages |
+| `docs.yml` | ubuntu-latest | Dokka documentation to GitHub Pages (opt-in: `--with-docs`, needs the Dokka plugin) |
 | `enforce-gitflow.yml` | ubuntu-latest | Branch rules validation |
 | `sync-develop.yml` | ubuntu-latest | Auto-sync main to develop |
 | `validate-release.yml` | ubuntu-latest | Tag validation and GitHub Release creation |
@@ -75,9 +75,10 @@ name such as `testDevDebugUnitTest` only in the modules that have it, so an unfl
 variants; `build` covers them (`test`, `jacocoTestCoverageVerification`). `fixtures/consumer`
 shows the setup.
 
-Use the same value for the Makefile: `./ARCDevTools-Android/arc-setup --variant DevDebug`.
-Re-copying the workflows with `--with-workflows` resets `ARC_VARIANT` to `Debug`, so set it
-again afterwards.
+`./ARCDevTools-Android/arc-setup --variant DevDebug` uses the same value everywhere: the
+Makefile, `ARC_VARIANT` in the installed `android-ci.yml` and `tests.yml` (`--with-workflows`), and
+the Claude Code Stop hook (`assembleDevDebug`) when `.claude/settings.json` is first installed.
+Always pass the same `--variant` when re-running `arc-setup --with-workflows`.
 
 ---
 
@@ -91,7 +92,17 @@ During `arc-setup`, choose to copy workflows when prompted:
 ./ARCDevTools-Android/arc-setup --with-workflows
 ```
 
-This copies all workflow files to `.github/workflows/`.
+This copies the workflow files to `.github/workflows/` (with `ARC_VARIANT` set from `--variant`),
+the issue/PR templates, and `.github/release-drafter.yml` when absent. `docs.yml` runs Dokka, which
+the Gradle scaffolding does not apply, so it is only installed with `--with-docs`:
+
+```bash
+./ARCDevTools-Android/arc-setup --with-workflows --with-docs
+```
+
+Release Drafter reads `.github/release-drafter.yml` from the default branch (`main`), so the
+`release-drafter.yml` check fails on pull requests until the first release PR merges the config
+into `main`.
 
 ### 2. Configure Repository
 
@@ -101,7 +112,7 @@ Set up the following in your GitHub repository:
 - Allow all actions and reusable workflows
 - Read and write permissions for GITHUB_TOKEN
 
-**Settings > Pages (for docs.yml):**
+**Settings > Pages (only with `--with-docs`):**
 - Source: GitHub Actions
 
 ### 3. Create Labels
@@ -168,8 +179,8 @@ instrumented-tests:
   name: Instrumented Tests
   runs-on: ubuntu-latest
   steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
+    - uses: actions/checkout@v7
+    - uses: actions/setup-java@v6
       with:
         distribution: 'temurin'
         java-version: '17'
@@ -187,12 +198,12 @@ build-check:
   name: Build Check
   runs-on: ubuntu-latest
   steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
+    - uses: actions/checkout@v7
+    - uses: actions/setup-java@v6
       with:
         distribution: 'temurin'
         java-version: '17'
-    - run: ./gradlew assembleDebug --daemon
+    - run: ./gradlew assemble${{ env.ARC_VARIANT }} --daemon
 ```
 
 ---
@@ -200,7 +211,7 @@ build-check:
 ## Best Practices
 
 1. **Run all checks on Ubuntu** - Android tooling works natively on Linux
-2. **Use Gradle caching** - The `gradle/actions/setup-gradle@v4` action handles this
+2. **Use Gradle caching** - The `gradle/actions/setup-gradle@v6` action handles this
 3. **Use `--daemon`** - Keeps Gradle daemon alive for faster subsequent tasks
 4. **Combine related tasks** - Run detekt and ktlint in the same job to reduce overhead
 5. **Cache dependencies** - Gradle caches are handled automatically by the setup-gradle action

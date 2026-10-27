@@ -41,7 +41,7 @@ ARCDevTools-Android delivers three categories of tooling to downstream projects:
 ```bash
 # 1. Add as submodule, pinned to a release tag (add lands on main; never -b develop)
 git submodule add https://github.com/arclabs-studio/ARCDevTools-Android.git
-git -C ARCDevTools-Android checkout v0.5.0
+git -C ARCDevTools-Android checkout v0.5.1
 git -C ARCDevTools-Android submodule update --init --recursive
 git add .gitmodules ARCDevTools-Android
 
@@ -69,12 +69,14 @@ PROJECT_ROOT/
 │   ├── block-dangerous-git.sh
 │   └── format-on-save.sh
 ├── .claude/
-│   ├── settings.json          ← copied from .claude/
+│   ├── settings.json          ← copied from .claude/ (Stop hook variant from --variant)
 │   └── skills/                ← symlinked from ARCKnowledge-Android
 ├── gradle/libs.versions.toml  ← from templates/gradle/ (--with-gradle)
 ├── gradle/gradle-daemon-jvm.properties ← from templates/root/ (--with-gradle)
 ├── build-logic/               ← arc.* convention plugins from templates/build-logic/ (--with-gradle)
 ├── settings.gradle.kts, build.gradle.kts, gradle.properties, .gitignore ← from templates/root/ (--with-gradle)
+├── .github/                   ← workflows/ (ARC_VARIANT from --variant; docs.yml only with --with-docs),
+│                                 PR/issue templates, release-drafter.yml from templates/github/ if absent (--with-workflows)
 ├── Makefile                   ← auto-generated
 └── ARCDevTools-Android/       ← this submodule
 ```
@@ -105,12 +107,13 @@ make clean     # Clean build artifacts
 ./ARCDevTools-Android/arc-setup                    # Interactive mode
 ./ARCDevTools-Android/arc-setup --with-workflows   # Install GitHub Actions (non-interactive)
 ./ARCDevTools-Android/arc-setup --no-workflows     # Skip GitHub Actions
-./ARCDevTools-Android/arc-setup --with-gradle      # Install Gradle scaffolding (non-interactive)
+./ARCDevTools-Android/arc-setup --with-docs        # Also install docs.yml (Dokka, opt-in)
+./ARCDevTools-Android/arc-setup --with-gradle      # Install Gradle scaffolding (non-interactive; also in an empty repo)
 ./ARCDevTools-Android/arc-setup --no-gradle        # Skip Gradle scaffolding
 ./ARCDevTools-Android/arc-setup --force-gradle     # Gradle scaffolding, overwriting existing root files
 ./ARCDevTools-Android/arc-setup --with-mcp         # Configure MCP servers (non-interactive)
 ./ARCDevTools-Android/arc-setup --no-mcp           # Skip MCP configuration
-./ARCDevTools-Android/arc-setup --variant DevDebug # Variant for the Makefile tasks (default Debug)
+./ARCDevTools-Android/arc-setup --variant DevDebug # Variant for Makefile, workflows' ARC_VARIANT, Stop hook (default Debug)
 ./ARCDevTools-Android/arc-setup --allow-missing-skills # Warn instead of failing when skills are missing
 ./ARCDevTools-Android/arc-setup --help             # Show help
 ```
@@ -135,7 +138,8 @@ Shows current branch, pending changes count, last release tag, uncommitted/stage
 
 ### Stop: Compilation Check
 
-Prompt hook (runs on claude-haiku-4-5) that verifies the project compiles via `./gradlew assembleDebug` if Kotlin files were edited during the session.
+Prompt hook (runs on claude-haiku-4-5) that verifies the project compiles via `./gradlew assemble<Variant>` if Kotlin files were edited during the session. The template holds `assemble__ARC_VARIANT__`; `arc-setup` substitutes `--variant` (default `Debug`) when it installs `.claude/settings.json` (an existing one is kept). This repository's own `.claude/settings.json` is that template, so its
+Stop hook names the placeholder; there is no Gradle project at the root to compile.
 
 ## MCP Servers
 
@@ -176,4 +180,4 @@ Release PR `develop → main`, then an annotated tag `vX.Y.Z` on `main`. Consume
 
 ## Version
 
-Current: **v0.5.0** | arc-setup: **v1.5.0**
+Current: **v0.5.1** | arc-setup: **v1.5.1**

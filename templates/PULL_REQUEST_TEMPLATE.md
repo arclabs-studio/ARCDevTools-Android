@@ -28,7 +28,7 @@ Before submitting this PR, please make sure you have:
 - [ ] New and existing unit tests pass locally with my changes (`./gradlew testDebugUnitTest`)
 - [ ] I have run `make lint` and `make format` to ensure code quality
 - [ ] I have updated CHANGELOG.md with my changes
-- [ ] I have updated KDoc/Dokka documentation if needed
+- [ ] I have updated KDoc documentation if needed
 
 ## Testing
 

@@ -32,7 +32,7 @@ ARCDevTools-Android provides standardized development tooling for ARC Labs Andro
 ```bash
 # Add as submodule, pinned to a release tag
 git submodule add https://github.com/arclabs-studio/ARCDevTools-Android.git
-git -C ARCDevTools-Android checkout v0.5.0
+git -C ARCDevTools-Android checkout v0.5.1
 git -C ARCDevTools-Android submodule update --init --recursive
 git add .gitmodules ARCDevTools-Android
 

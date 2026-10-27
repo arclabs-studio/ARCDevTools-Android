@@ -25,7 +25,7 @@ Navigate to your project root, add ARCDevTools-Android as a Git submodule and pi
 ```bash
 cd /path/to/your/project
 git submodule add https://github.com/arclabs-studio/ARCDevTools-Android.git
-git -C ARCDevTools-Android checkout v0.5.0
+git -C ARCDevTools-Android checkout v0.5.1
 git -C ARCDevTools-Android submodule update --init --recursive
 git add .gitmodules ARCDevTools-Android
 ```
@@ -88,7 +88,7 @@ The setup tool will:
 
 Replace each module's hand-written `android {}` configuration with the `arc.*` plugins
 (`arc.android.application`, `arc.android.library`, `arc.android.feature`, `arc.android.compose`,
-`arc.android.hilt`, `arc.android.room`, `arc.jvm.library`). See the
+`arc.android.hilt`, `arc.android.room`, `arc.android.robolectric`, `arc.jvm.library`). See the
 [Integration Guide](integration.md) for examples.
 
 ## Claude Code Setup
