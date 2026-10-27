@@ -1,5 +1,5 @@
 // ARCDevTools-Android — build-logic
-// Version: 0.5.0
+// Version: 0.5.1
 //
 // Convention plugins shared by every ARC Labs Android project. The third-party Gradle plugins
 // are compileOnly here: the root build.gradle.kts puts them on the build classpath with
@@ -34,6 +34,7 @@ dependencies {
     compileOnly(libs.detekt.gradlePlugin)
     compileOnly(libs.ktlint.gradlePlugin)
     compileOnly(libs.android.junit5.gradlePlugin)
+    compileOnly(libs.compose.screenshot.gradlePlugin)
 }
 
 tasks {
@@ -68,6 +69,10 @@ gradlePlugin {
         register("androidRoom") {
             id = libs.plugins.arc.android.room.get().pluginId
             implementationClass = "com.arclabs.buildlogic.AndroidRoomConventionPlugin"
+        }
+        register("androidRobolectric") {
+            id = libs.plugins.arc.android.robolectric.get().pluginId
+            implementationClass = "com.arclabs.buildlogic.AndroidRobolectricConventionPlugin"
         }
         register("androidLint") {
             id = libs.plugins.arc.android.lint.get().pluginId

@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout develop
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: develop
           fetch-depth: 0
@@ -91,7 +91,7 @@ jobs:
 
       - name: Create conflict issue
         if: failure() && steps.merge.outputs.merge_status == 'conflict'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const issue = await github.rest.issues.create({

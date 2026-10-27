@@ -1,6 +1,6 @@
 #!/bin/bash
 # ARCDevTools-Android Setup Script
-# Version: 1.5.0
+# Version: 1.5.1
 #
 # Installs ARCDevTools-Android configuration files, git hooks, Gradle scaffolding
 # (version catalog, build-logic convention plugins, root build files, Gradle wrapper
@@ -9,7 +9,7 @@
 
 set -e
 
-VERSION="1.5.0"
+VERSION="1.5.1"
 GRADLE_VERSION="9.8.2"
 GRADLE_DISTRIBUTION_SHA256="21bd5da2de49b642904077f38c0efdc7778e92b3ed0889392dca61b97e389607"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -45,6 +45,7 @@ print_warning() {
 
 WITH_WORKFLOWS=false
 NO_WORKFLOWS=false
+WITH_DOCS=false
 WITH_GRADLE=false
 NO_GRADLE=false
 FORCE_GRADLE=false
@@ -62,6 +63,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --no-workflows)
       NO_WORKFLOWS=true
+      shift
+      ;;
+    --with-docs)
+      WITH_DOCS=true
       shift
       ;;
     --with-gradle)
@@ -115,17 +120,21 @@ if [ "$SHOW_HELP" = true ]; then
   echo "Options:"
   echo "  --with-workflows  Install GitHub Actions workflows (non-interactive)"
   echo "  --no-workflows    Skip GitHub Actions workflows (non-interactive)"
+  echo "  --with-docs       Also install docs.yml (Dokka to GitHub Pages); requires the Dokka"
+  echo "                    Gradle plugin, which the scaffolding does not apply"
   echo "  --with-gradle     Install Gradle scaffolding (non-interactive): version catalog,"
-  echo "                    build-logic, root build files, Gradle wrapper ${GRADLE_VERSION}"
+  echo "                    build-logic, root build files, Gradle wrapper ${GRADLE_VERSION}."
+  echo "                    Also accepted in an empty repository (no gradlew/build file yet)"
   echo "  --no-gradle       Skip Gradle scaffolding (non-interactive)"
   echo "  --force-gradle    Like --with-gradle, but also overwrite an existing version catalog,"
   echo "                    gradle-daemon-jvm.properties, settings.gradle.kts, build.gradle.kts,"
   echo "                    gradle.properties and .gitignore"
   echo "  --with-mcp        Configure MCP servers for Claude Code (non-interactive)"
   echo "  --no-mcp          Skip MCP server configuration (non-interactive)"
-  echo "  --variant <Name>  Android variant for the Makefile's variant tasks (default: Debug)."
-  echo "                    Flavored projects pass flavor + build type, e.g. DevDebug"
-  echo "                    (test<Name>UnitTest, validate<Name>ScreenshotTest, lint<Name>, ...)"
+  echo "  --variant <Name>  Android variant for the Makefile's variant tasks, the installed"
+  echo "                    workflows' ARC_VARIANT and a newly installed Claude Stop hook"
+  echo "                    (assemble<Name>) (default: Debug). Flavored projects pass flavor +"
+  echo "                    build type, e.g. DevDebug (test<Name>UnitTest, lint<Name>, ...)"
   echo "  --allow-missing-skills"
   echo "                    Warn instead of failing when the ARCKnowledge-Android skills cannot"
   echo "                    be linked (missing submodule or SKILL.md)"
@@ -170,12 +179,17 @@ if [ -f "$PROJECT_ROOT/build.gradle.kts" ] || [ -f "$PROJECT_ROOT/build.gradle" 
 fi
 
 if [ "$HAS_GRADLEW" = false ] && [ "$HAS_BUILD_GRADLE" = false ]; then
-  print_error "No gradlew or build.gradle.kts detected"
-  print_error "Run this script from your Android project root directory"
-  exit 1
+  if [ "$WITH_GRADLE" = true ]; then
+    print_warning "No gradlew or build.gradle.kts detected: scaffolding a new project (--with-gradle)"
+  else
+    print_error "No gradlew or build.gradle.kts detected"
+    print_error "Run this script from your Android project root directory,"
+    print_error "or pass --with-gradle to scaffold a new project in an empty repository"
+    exit 1
+  fi
+else
+  print_success "Android project detected"
 fi
-
-print_success "Android project detected"
 
 # --- Copy .editorconfig ---
 
@@ -347,8 +361,9 @@ mkdir -p "$CLAUDE_DIR"
 CLAUDE_SETTINGS_SOURCE="$SCRIPT_DIR/.claude/settings.json"
 if [ -f "$CLAUDE_SETTINGS_SOURCE" ]; then
   if [ ! -f "$CLAUDE_DIR/settings.json" ]; then
-    cp "$CLAUDE_SETTINGS_SOURCE" "$CLAUDE_DIR/settings.json"
-    print_success "Claude settings.json installed"
+    # The Stop hook compiles the project's variant (assemble<Variant>).
+    sed "s/__ARC_VARIANT__/${VARIANT}/g" "$CLAUDE_SETTINGS_SOURCE" > "$CLAUDE_DIR/settings.json"
+    print_success "Claude settings.json installed (Stop hook: assemble${VARIANT})"
   else
     print_warning "Claude settings.json already exists (skipped)"
   fi
@@ -489,8 +504,20 @@ install_workflows() {
     for workflow in "$WORKFLOWS_SOURCE"/*.yml; do
       if [ -f "$workflow" ]; then
         FILENAME=$(basename "$workflow")
+        # docs.yml runs Dokka, which the Gradle scaffolding does not apply: opt-in only.
+        if [ "$FILENAME" = "docs.yml" ] && [ "$WITH_DOCS" = false ]; then
+          print_warning "docs.yml skipped (Dokka; install it with --with-docs)"
+          continue
+        fi
         cp "$workflow" "$GITHUB_WORKFLOWS_DIR/$FILENAME"
-        print_success "$FILENAME"
+        # Variant workflows run the same variant as the Makefile (--variant).
+        if grep -q '^  ARC_VARIANT: ' "$GITHUB_WORKFLOWS_DIR/$FILENAME"; then
+          sed -i.bak "s/^  ARC_VARIANT: .*/  ARC_VARIANT: ${VARIANT}/" "$GITHUB_WORKFLOWS_DIR/$FILENAME"
+          rm -f "$GITHUB_WORKFLOWS_DIR/$FILENAME.bak"
+          print_success "$FILENAME (ARC_VARIANT: ${VARIANT})"
+        else
+          print_success "$FILENAME"
+        fi
       fi
     done
   else
@@ -502,6 +529,16 @@ install_workflows() {
   GITHUB_DIR="$PROJECT_ROOT/.github"
 
   if [ -d "$TEMPLATES_SOURCE" ]; then
+    # Release Drafter configuration: project-owned once installed (categories, template)
+    if [ -f "$TEMPLATES_SOURCE/github/release-drafter.yml" ]; then
+      if [ -f "$GITHUB_DIR/release-drafter.yml" ]; then
+        print_warning "release-drafter.yml exists, kept"
+      else
+        cp "$TEMPLATES_SOURCE/github/release-drafter.yml" "$GITHUB_DIR/release-drafter.yml"
+        print_success "release-drafter.yml (read from main: merge a release PR before the workflow passes)"
+      fi
+    fi
+
     # Copy PR template
     if [ -f "$TEMPLATES_SOURCE/PULL_REQUEST_TEMPLATE.md" ]; then
       cp "$TEMPLATES_SOURCE/PULL_REQUEST_TEMPLATE.md" "$GITHUB_DIR/PULL_REQUEST_TEMPLATE.md"

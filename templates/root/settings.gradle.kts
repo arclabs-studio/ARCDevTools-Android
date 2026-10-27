@@ -1,5 +1,5 @@
 // ARCDevTools-Android — root settings template
-// Version: 0.5.0
+// Version: 0.5.1
 //
 // Installed by arc-setup only when the project has no settings.gradle.kts yet.
 

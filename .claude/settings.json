@@ -37,7 +37,7 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "If .kt or .kts files were edited during this session, verify the project compiles by running './gradlew assembleDebug'. Do NOT run tests -- that is handled by pre-push hooks. Only check compilation.",
+            "prompt": "If .kt or .kts files were edited during this session, verify the project compiles by running './gradlew assemble__ARC_VARIANT__'. Do NOT run tests -- that is handled by pre-push hooks. Only check compilation.",
             "model": "claude-haiku-4-5"
           }
         ]

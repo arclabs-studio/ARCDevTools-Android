@@ -7,6 +7,76 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.5.1] - 2026-10-27
+
+Upstreams the local deviations and gaps found while building FavRes-Android (Fases 1–2).
+
+**Upgrading:** `arc-setup` keeps an existing `gradle/libs.versions.toml`, and the synced
+`build-logic/` now references two new catalog entries. Add them before building (or copy them from
+`templates/gradle/libs.versions.toml`):
+
+```toml
+[libraries]
+compose-screenshot-gradlePlugin = { module = "com.android.compose.screenshot:screenshot-test-gradle-plugin", version.ref = "composeScreenshot" }
+
+[plugins]
+arc-android-robolectric = { id = "arc.android.robolectric" }
+```
+
+An existing `.claude/settings.json` is kept, so its Stop hook still runs `./gradlew assembleDebug`:
+flavored projects edit it to `assemble<Variant>` by hand (e.g. `assembleDevDebug`).
+
+Re-running `arc-setup --with-workflows` replaces the release-drafter workflow and other workflow
+files; pass the project's `--variant`.
+
+### Added
+
+- **`arc.android.robolectric`** convention plugin (`AndroidRobolectricConventionPlugin`,
+  `RobolectricTestConfiguration.kt`; catalog id `arc-android-robolectric`): Android resources on
+  the unit-test classpath, Robolectric + JUnit 4 on the JUnit Vintage engine, JDK 17+
+  `--add-exports`. For Android modules that test on Robolectric without Compose or Room
+- **`templates/github/release-drafter.yml`**: generic Release Drafter config (ARC categories and
+  version resolver). `arc-setup --with-workflows` installs it to `.github/release-drafter.yml` when
+  absent; Release Drafter reads it from `main`, so the check is red until the first release PR
+- **`arc-setup --with-docs`**: opt-in for `docs.yml`
+- Git hooks: Android environment preflight. Without `JAVA_HOME` and a working `java` on `PATH`,
+  the hooks look for a JDK (`/usr/libexec/java_home -v <toolchainVersion>`, then Gradle-provisioned
+  JDKs in `~/.gradle/jdks`); without `ANDROID_HOME`/`ANDROID_SDK_ROOT` and `local.properties`
+  `sdk.dir`, they stop with an explicit message
+- Catalog: `compose-screenshot-gradlePlugin` (build-logic `compileOnly`)
+
+### Changed
+
+- `arc.android.compose` applies `arc.android.robolectric` instead of wiring Robolectric inline
+- `arc.android.room` applies `arc.android.robolectric` and adds `testImplementation`
+  `androidx.test:core` (`ApplicationProvider` for in-memory database tests)
+- **GitHub Actions on Node 24**: `actions/checkout@v7`, `actions/setup-java@v6`,
+  `gradle/actions/setup-gradle@v6`, `actions/upload-artifact@v7`, `actions/upload-pages-artifact@v5`,
+  `actions/deploy-pages@v5`, `actions/github-script@v9`, `softprops/action-gh-release@v3`,
+  `release-drafter/release-drafter@v7` (workflow templates and this repo's workflows; release
+  notes checked for breaking inputs — none used here)
+- `arc-setup` no longer installs `docs.yml` by default: it runs Dokka, which the Gradle
+  scaffolding does not apply (`--with-docs` to install it)
+- `arc-setup --variant` also sets `ARC_VARIANT` in the installed `android-ci.yml` / `tests.yml`
+  and the Claude Code Stop hook (`assemble<Variant>`, template placeholder `__ARC_VARIANT__`)
+  when `.claude/settings.json` is first installed
+- `arc-setup --with-gradle` (or `--force-gradle`) proceeds in an empty repository instead of
+  failing project detection
+- arc-setup 1.5.1, pre-commit hook 1.2.0, pre-push hook 1.3.0
+
+### Fixed
+
+- Screenshot validation is no longer pixel-exact: `arc.android.compose` sets a 0.05 % threshold on
+  `PreviewScreenshotValidationTask` (plugin 0.0.1-alpha16 removed the `imageDifferenceThreshold`
+  DSL), so references recorded on macOS pass on the Linux CI renderer
+- The Stop hook ran `assembleDebug`, which does not exist in flavored projects (new installs;
+  see Upgrading for existing ones)
+- The pre-commit hook discarded Gradle's output (`2>/dev/null`) and reported any failure, including
+  a missing JDK or SDK, as "ktlint found violations"; it now prints the end of the output
+- PR template no longer mentions Dokka
+
+---
+
 ## [0.5.0] - 2026-10-25
 
 Audit hardening (independent audit of 2026-10-22).
@@ -357,7 +427,8 @@ git commit -m "chore: integrate ARCDevTools-Android v0.1.0"
 
 ---
 
-[Unreleased]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/arclabs-studio/ARCDevTools-Android/compare/v0.2.0...v0.3.0
