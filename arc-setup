@@ -1,6 +1,6 @@
 #!/bin/bash
 # ARCDevTools-Android Setup Script
-# Version: 1.5.1
+# Version: 1.5.2
 #
 # Installs ARCDevTools-Android configuration files, git hooks, Gradle scaffolding
 # (version catalog, build-logic convention plugins, root build files, Gradle wrapper
@@ -9,7 +9,7 @@
 
 set -e
 
-VERSION="1.5.1"
+VERSION="1.5.2"
 GRADLE_VERSION="9.8.2"
 GRADLE_DISTRIBUTION_SHA256="21bd5da2de49b642904077f38c0efdc7778e92b3ed0889392dca61b97e389607"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -52,6 +52,8 @@ FORCE_GRADLE=false
 WITH_MCP=false
 NO_MCP=false
 VARIANT="Debug"
+FIREBASE_EMULATORS=""
+FIREBASE_PROJECT="demo-project"
 ALLOW_MISSING_SKILLS=false
 SHOW_HELP=false
 
@@ -97,6 +99,20 @@ while [[ $# -gt 0 ]]; do
         shift
       fi
       ;;
+    --firebase-emulators)
+      FIREBASE_EMULATORS="${2:-}"
+      shift
+      if [ $# -gt 0 ]; then
+        shift
+      fi
+      ;;
+    --firebase-project)
+      FIREBASE_PROJECT="${2:-}"
+      shift
+      if [ $# -gt 0 ]; then
+        shift
+      fi
+      ;;
     --allow-missing-skills)
       ALLOW_MISSING_SKILLS=true
       shift
@@ -135,6 +151,13 @@ if [ "$SHOW_HELP" = true ]; then
   echo "                    workflows' ARC_VARIANT and a newly installed Claude Stop hook"
   echo "                    (assemble<Name>) (default: Debug). Flavored projects pass flavor +"
   echo "                    build type, e.g. DevDebug (test<Name>UnitTest, lint<Name>, ...)"
+  echo "  --firebase-emulators <list>"
+  echo "                    Comma-separated Firebase emulators (e.g. auth,firestore) the installed"
+  echo "                    workflows start around the Gradle steps (firebase emulators:exec);"
+  echo "                    needs a firebase.json declaring them (default: none, emulators off)"
+  echo "  --firebase-project <id>"
+  echo "                    Demo project id for the emulators, must start with demo- (default:"
+  echo "                    demo-project)"
   echo "  --allow-missing-skills"
   echo "                    Warn instead of failing when the ARCKnowledge-Android skills cannot"
   echo "                    be linked (missing submodule or SKILL.md)"
@@ -145,6 +168,7 @@ if [ "$SHOW_HELP" = true ]; then
   echo "  ./ARCDevTools-Android/arc-setup --with-workflows --with-gradle --with-mcp # CI mode, everything"
   echo "  ./ARCDevTools-Android/arc-setup --no-workflows --no-gradle --no-mcp       # Configs and hooks only"
   echo "  ./ARCDevTools-Android/arc-setup --with-gradle --variant DevDebug          # Flavored project (dev flavor)"
+  echo "  ./ARCDevTools-Android/arc-setup --with-workflows --firebase-emulators auth,firestore --firebase-project demo-myapp"
   echo ""
   exit 0
 fi
@@ -153,6 +177,17 @@ fi
 
 if [[ ! "$VARIANT" =~ ^[A-Z][A-Za-z0-9]*$ ]]; then
   print_error "Invalid --variant '${VARIANT}': expected an alphanumeric name starting with an uppercase letter (e.g. Debug, DevDebug)"
+  exit 1
+fi
+
+if [ -n "$FIREBASE_EMULATORS" ] && [[ ! "$FIREBASE_EMULATORS" =~ ^[a-z]+(,[a-z]+)*$ ]]; then
+  print_error "Invalid --firebase-emulators '${FIREBASE_EMULATORS}': expected a comma-separated list (e.g. auth,firestore)"
+  exit 1
+fi
+
+# demo-* project ids make the emulators refuse to reach any real Firebase resource.
+if [[ ! "$FIREBASE_PROJECT" =~ ^demo-[a-z0-9-]+$ ]]; then
+  print_error "Invalid --firebase-project '${FIREBASE_PROJECT}': expected a demo project id (e.g. demo-myapp)"
   exit 1
 fi
 
@@ -510,14 +545,20 @@ install_workflows() {
           continue
         fi
         cp "$workflow" "$GITHUB_WORKFLOWS_DIR/$FILENAME"
+        DETAILS=""
         # Variant workflows run the same variant as the Makefile (--variant).
         if grep -q '^  ARC_VARIANT: ' "$GITHUB_WORKFLOWS_DIR/$FILENAME"; then
           sed -i.bak "s/^  ARC_VARIANT: .*/  ARC_VARIANT: ${VARIANT}/" "$GITHUB_WORKFLOWS_DIR/$FILENAME"
-          rm -f "$GITHUB_WORKFLOWS_DIR/$FILENAME.bak"
-          print_success "$FILENAME (ARC_VARIANT: ${VARIANT})"
-        else
-          print_success "$FILENAME"
+          DETAILS="ARC_VARIANT: ${VARIANT}"
         fi
+        # Firebase emulators around the Gradle steps (--firebase-emulators); off when the list is empty.
+        if [ -n "$FIREBASE_EMULATORS" ] && grep -q '^  ARC_FIREBASE_EMULATORS: ' "$GITHUB_WORKFLOWS_DIR/$FILENAME"; then
+          sed -i.bak -e "s/^  ARC_FIREBASE_EMULATORS: .*/  ARC_FIREBASE_EMULATORS: ${FIREBASE_EMULATORS}/" \
+            -e "s/^  ARC_FIREBASE_PROJECT: .*/  ARC_FIREBASE_PROJECT: ${FIREBASE_PROJECT}/" "$GITHUB_WORKFLOWS_DIR/$FILENAME"
+          DETAILS="${DETAILS:+$DETAILS, }Firebase emulators: ${FIREBASE_EMULATORS} (${FIREBASE_PROJECT})"
+        fi
+        rm -f "$GITHUB_WORKFLOWS_DIR/$FILENAME.bak"
+        print_success "$FILENAME${DETAILS:+ ($DETAILS)}"
       fi
     done
   else

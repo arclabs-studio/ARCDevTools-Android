@@ -41,7 +41,7 @@ ARCDevTools-Android delivers three categories of tooling to downstream projects:
 ```bash
 # 1. Add as submodule, pinned to a release tag (add lands on main; never -b develop)
 git submodule add https://github.com/arclabs-studio/ARCDevTools-Android.git
-git -C ARCDevTools-Android checkout v0.5.1
+git -C ARCDevTools-Android checkout v0.5.2
 git -C ARCDevTools-Android submodule update --init --recursive
 git add .gitmodules ARCDevTools-Android
 
@@ -114,6 +114,7 @@ make clean     # Clean build artifacts
 ./ARCDevTools-Android/arc-setup --with-mcp         # Configure MCP servers (non-interactive)
 ./ARCDevTools-Android/arc-setup --no-mcp           # Skip MCP configuration
 ./ARCDevTools-Android/arc-setup --variant DevDebug # Variant for Makefile, workflows' ARC_VARIANT, Stop hook (default Debug)
+./ARCDevTools-Android/arc-setup --with-workflows --firebase-emulators auth,firestore --firebase-project demo-myapp # CI runs Gradle under the Firebase emulators (default off)
 ./ARCDevTools-Android/arc-setup --allow-missing-skills # Warn instead of failing when skills are missing
 ./ARCDevTools-Android/arc-setup --help             # Show help
 ```
@@ -180,4 +181,4 @@ Release PR `develop → main`, then an annotated tag `vX.Y.Z` on `main`. Consume
 
 ## Version
 
-Current: **v0.5.1** | arc-setup: **v1.5.1**
+Current: **v0.5.2** | arc-setup: **v1.5.2**

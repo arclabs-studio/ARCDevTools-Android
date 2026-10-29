@@ -1,5 +1,5 @@
 # ARCDevTools-Android release-drafter template
-# Version: 0.5.1
+# Version: 0.5.2
 #
 # Release Drafter configuration (read by .github/workflows/release-drafter.yml). Installed by
 # arc-setup to .github/release-drafter.yml when absent; edit freely afterwards (app-specific

@@ -136,6 +136,23 @@ arc.coverage.minimum=0.80
 When the property is absent the plugins use `0.80`. Any value that is not a number in (0, 1]
 fails the build at configuration time with a message naming the property.
 
+### Coverage Exclusions
+
+Android modules already exclude generated code (R, BuildConfig, Hilt/Dagger, Room, Compose
+singletons, `*Previews*`). A module can exclude more classes through the extra property
+`arc.coverage.excludes`, a list of Ant patterns set in its build file with a comment saying why:
+
+```kotlin
+// Remote Config and Analytics have no local emulator; Auth/Firestore adapters stay covered
+// by emulator tests.
+extra["arc.coverage.excludes"] = listOf(
+    "**/RemoteConfigFeatureFlagRepository*",
+    "**/FirebaseAnalyticsTracker*",
+)
+```
+
+Reserve it for SDK glue no local test can exercise. It is not a way to reach the minimum.
+
 ---
 
 ## Git Hooks

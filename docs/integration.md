@@ -22,7 +22,7 @@ modules consume it.
 
 ```bash
 git submodule add https://github.com/arclabs-studio/ARCDevTools-Android.git
-git -C ARCDevTools-Android checkout v0.5.1
+git -C ARCDevTools-Android checkout v0.5.2
 git -C ARCDevTools-Android submodule update --init --recursive
 git add .gitmodules ARCDevTools-Android
 ```
