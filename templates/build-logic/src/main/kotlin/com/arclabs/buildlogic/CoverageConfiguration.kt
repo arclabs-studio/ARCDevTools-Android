@@ -61,12 +61,8 @@ private val COVERAGE_EXCLUSIONS = listOf(
 /**
  * Extra-properties key an Android module sets to exclude more classes from its coverage: a list of Ant
  * patterns like [COVERAGE_EXCLUSIONS], set in its build file with a comment saying why. Meant for
- * SDK glue no local test can exercise (e.g. Firebase Remote Config or Analytics adapters):
- *
- * ```kotlin
- * // Remote Config has no local emulator: the adapter is covered by the emulator-free fakes.
- * extra["arc.coverage.excludes"] = listOf("**/RemoteConfigFeatureFlagRepository*")
- * ```
+ * SDK glue no local test can exercise (e.g. Firebase Remote Config or Analytics adapters). Example
+ * in `docs/configuration.md` (Coverage Exclusions).
  */
 private const val EXTRA_COVERAGE_EXCLUSIONS_PROPERTY = "arc.coverage.excludes"
 
