@@ -27,6 +27,13 @@ env:
   # e.g. DevDebug for flavor "dev". `arc-setup --variant <Name>` writes it here.
   ARC_VARIANT: Debug
 
+  # Firebase Local Emulator Suite for tests that talk to Firebase (opt-in). A comma-separated
+  # list of emulators (e.g. auth,firestore) wraps the Gradle steps in `firebase emulators:exec`
+  # against ARC_FIREBASE_PROJECT (a demo-* id: never touches a real project). Empty = off.
+  # `arc-setup --firebase-emulators <list> --firebase-project <id>` writes both.
+  ARC_FIREBASE_EMULATORS: ""
+  ARC_FIREBASE_PROJECT: demo-project
+
 jobs:
   build:
     name: Build, Lint, Unit Tests
@@ -49,18 +56,36 @@ jobs:
       - name: Setup Gradle (with dependency cache)
         uses: gradle/actions/setup-gradle@v6
 
+      # Only with ARC_FIREBASE_EMULATORS: the Firebase CLI runs the emulators (needs JDK 21).
+      - name: Set up Node.js (Firebase CLI)
+        if: env.ARC_FIREBASE_EMULATORS != ''
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Install Firebase CLI
+        if: env.ARC_FIREBASE_EMULATORS != ''
+        run: npm install --global firebase-tools@15.17.0
+
       # assemble + lint (warningsAsErrors) + unit tests + JaCoCo (arc.coverage.minimum) + detekt + ktlint
       - name: Build
-        run: ./gradlew build
+        run: |
+          if [ -n "$ARC_FIREBASE_EMULATORS" ]; then
+            firebase emulators:exec --only "$ARC_FIREBASE_EMULATORS" --project "$ARC_FIREBASE_PROJECT" "./gradlew build"
+          else
+            ./gradlew build
+          fi
 
       # Already part of `build` (up-to-date here); named explicitly so a wrong ARC_VARIANT fails
       # with "Task ... not found" instead of silently checking nothing.
       - name: Lint, unit tests and coverage gate (${{ env.ARC_VARIANT }})
-        run: >-
-          ./gradlew
-          lint${{ env.ARC_VARIANT }}
-          test${{ env.ARC_VARIANT }}UnitTest
-          jacoco${{ env.ARC_VARIANT }}UnitTestCoverageVerification
+        run: |
+          TASKS="lint${ARC_VARIANT} test${ARC_VARIANT}UnitTest jacoco${ARC_VARIANT}UnitTestCoverageVerification"
+          if [ -n "$ARC_FIREBASE_EMULATORS" ]; then
+            firebase emulators:exec --only "$ARC_FIREBASE_EMULATORS" --project "$ARC_FIREBASE_PROJECT" "./gradlew $TASKS"
+          else
+            ./gradlew $TASKS
+          fi
 
       - name: Upload reports
         if: always()

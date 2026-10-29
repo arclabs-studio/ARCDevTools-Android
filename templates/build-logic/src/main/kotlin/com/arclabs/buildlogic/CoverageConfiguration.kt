@@ -59,6 +59,20 @@ private val COVERAGE_EXCLUSIONS = listOf(
 )
 
 /**
+ * Extra-properties key an Android module sets to exclude more classes from its coverage: a list of Ant
+ * patterns like [COVERAGE_EXCLUSIONS], set in its build file with a comment saying why. Meant for
+ * SDK glue no local test can exercise (e.g. Firebase Remote Config or Analytics adapters). Example
+ * in `docs/configuration.md` (Coverage Exclusions).
+ */
+private const val EXTRA_COVERAGE_EXCLUSIONS_PROPERTY = "arc.coverage.excludes"
+
+/** The module's [EXTRA_COVERAGE_EXCLUSIONS_PROPERTY] patterns; empty when it sets none. */
+private fun Project.extraCoverageExclusions(): List<String> =
+    (extensions.extraProperties.properties[EXTRA_COVERAGE_EXCLUSIONS_PROPERTY] as? List<*>)
+        ?.filterIsInstance<String>()
+        .orEmpty()
+
+/**
  * The minimum line coverage for this build: Gradle property `arc.coverage.minimum`
  * (`gradle.properties` or `-Parc.coverage.minimum=…`), default 0.80. Fails configuration when the
  * value is not a number in (0, 1].
@@ -100,6 +114,8 @@ internal fun Project.configureAndroidCoverage(androidComponents: AndroidComponen
     }
     androidComponents.onVariants(androidComponents.selector().withBuildType(COVERED_BUILD_TYPE)) { variant ->
         val variantName = variant.name.replaceFirstChar(Char::titlecase)
+        // Read here, after the module's build script has run.
+        val exclusions = COVERAGE_EXCLUSIONS + extraCoverageExclusions()
         val unitTestTask = "test${variantName}UnitTest"
         val executionData = layout.buildDirectory
             .dir("outputs/unit_test_code_coverage/${variant.name}UnitTest")
@@ -116,7 +132,7 @@ internal fun Project.configureAndroidCoverage(androidComponents: AndroidComponen
             this.classDirectories.setFrom(
                 classJars,
                 classDirectories.map { dirs ->
-                    dirs.map { dir -> objectFactory.fileTree().setDir(dir).exclude(COVERAGE_EXCLUSIONS) }
+                    dirs.map { dir -> objectFactory.fileTree().setDir(dir).exclude(exclusions) }
                 },
             )
         }
