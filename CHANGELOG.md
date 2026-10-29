@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.5.2] - 2026-10-29
+
+Upstreams the local deviations found while building FavRes-Android Fase 3 (auth + Firebase).
+
+### Added
+- `arc.coverage.excludes`: Android modules can exclude extra classes from the JaCoCo gate with a
+  list of Ant patterns in `extra["arc.coverage.excludes"]` (for SDK glue no local test can
+  exercise). Documented in `docs/configuration.md`.
+- Opt-in Firebase Local Emulator Suite in `android-ci.yml` and `tests.yml`:
+  `ARC_FIREBASE_EMULATORS` (comma-separated, empty = off) and `ARC_FIREBASE_PROJECT` (`demo-*`).
+  When set, the jobs install Node.js + `firebase-tools` 15.17.0 and run Gradle inside
+  `firebase emulators:exec`. Documented in `docs/ci-cd.md`.
+- `arc-setup --firebase-emulators <list> --firebase-project <id>` writes both values into the
+  installed workflows (validated; the project id must start with `demo-`).
+
+### Changed
+- `tests.yml` installs JDK 17 and 21 like `android-ci.yml` (the Gradle daemon and the Firebase
+  CLI run on 21).
+- ARCKnowledge-Android submodule → v0.3.1 (state-driven error alerts are not navigation keys).
+- arc-setup 1.5.1 → 1.5.2.
+
 ## [0.5.1] - 2026-10-27
 
 Upstreams the local deviations and gaps found while building FavRes-Android (Fases 1–2).

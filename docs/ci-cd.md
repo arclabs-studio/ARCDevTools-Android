@@ -9,6 +9,7 @@ This guide covers GitHub Actions configuration for ARC Labs Studio Android proje
 - [Overview](#overview)
 - [Available Workflows](#available-workflows)
 - [Flavored Projects (ARC_VARIANT)](#flavored-projects-arc_variant)
+- [Firebase Emulators (ARC_FIREBASE_EMULATORS)](#firebase-emulators-arc_firebase_emulators)
 - [Setup Instructions](#setup-instructions)
 - [Runner and Billing](#runner-and-billing)
 - [Configuration Reference](#configuration-reference)
@@ -28,7 +29,7 @@ ARCDevTools-Android provides 8 workflow templates optimized for Android projects
 |----------|--------|---------|
 | `android-ci.yml` | ubuntu-latest | `./gradlew build` (assemble, Lint, unit tests, coverage gate, detekt, ktlint), the `${ARC_VARIANT}` Lint / unit-test / coverage / screenshot tasks, detekt + ktlint |
 | `quality.yml` | ubuntu-latest | ktlint, detekt, Markdown link check |
-| `tests.yml` | ubuntu-latest | Unit tests with Java 17 |
+| `tests.yml` | ubuntu-latest | `test${ARC_VARIANT}UnitTest` (JDK 17 + 21) |
 | `docs.yml` | ubuntu-latest | Dokka documentation to GitHub Pages (opt-in: `--with-docs`, needs the Dokka plugin) |
 | `enforce-gitflow.yml` | ubuntu-latest | Branch rules validation |
 | `sync-develop.yml` | ubuntu-latest | Auto-sync main to develop |
@@ -78,6 +79,31 @@ shows the setup.
 `./ARCDevTools-Android/arc-setup --variant DevDebug` uses the same value everywhere: the
 Makefile, `ARC_VARIANT` in the installed `android-ci.yml` and `tests.yml` (`--with-workflows`), and
 the Claude Code Stop hook (`assembleDevDebug`) when `.claude/settings.json` is first installed.
+
+---
+
+## Firebase Emulators (ARC_FIREBASE_EMULATORS)
+
+Tests that run the Firebase SDK against the Firebase Local Emulator Suite (e.g. Auth and Firestore
+repositories on Robolectric) need the emulators up while Gradle runs. `android-ci.yml` and
+`tests.yml` support it as an opt-in:
+
+```yaml
+env:
+  ARC_FIREBASE_EMULATORS: ""            # e.g. auth,firestore; empty = off
+  ARC_FIREBASE_PROJECT: demo-project    # demo-* id: never reaches a real project
+```
+
+When `ARC_FIREBASE_EMULATORS` is set, the jobs install Node.js and a pinned `firebase-tools`
+(it needs JDK 21, the default the jobs install) and wrap the Gradle steps in
+`firebase emulators:exec --only <list> --project <id> "./gradlew …"`. The repository needs a
+`firebase.json` that declares those emulators (ports) — the same file developers use locally with
+`firebase emulators:start`.
+
+`arc-setup --with-workflows --firebase-emulators auth,firestore --firebase-project demo-myapp`
+writes both values. Like `--variant`, pass them again whenever the workflows are re-copied: a run
+without `--firebase-emulators` installs them switched off. FavRes uses
+`--variant DevDebug --firebase-emulators auth,firestore --firebase-project demo-favres`.
 Always pass the same `--variant` when re-running `arc-setup --with-workflows`.
 
 ---

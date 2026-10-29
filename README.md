@@ -33,7 +33,7 @@ ARCDevTools-Android is the Android counterpart to [ARCDevTools](https://github.c
 ```bash
 # 1. Add as submodule to your Android project, pinned to a release tag
 git submodule add https://github.com/arclabs-studio/ARCDevTools-Android.git
-git -C ARCDevTools-Android checkout v0.5.1
+git -C ARCDevTools-Android checkout v0.5.2
 git -C ARCDevTools-Android submodule update --init --recursive
 git add .gitmodules ARCDevTools-Android
 
@@ -49,7 +49,7 @@ make test
 git add .gitmodules ARCDevTools-Android/ .editorconfig config/ Makefile \
   gradle/ build-logic/ settings.gradle.kts build.gradle.kts gradle.properties \
   .gitignore claude-hooks/ .claude/settings.json
-git commit -m "chore: integrate ARCDevTools-Android v0.5.1"
+git commit -m "chore: integrate ARCDevTools-Android v0.5.2"
 ```
 
 `git submodule add` checks out the default branch (`main`); the `checkout` pins a release tag,

@@ -25,7 +25,7 @@ Navigate to your project root, add ARCDevTools-Android as a Git submodule and pi
 ```bash
 cd /path/to/your/project
 git submodule add https://github.com/arclabs-studio/ARCDevTools-Android.git
-git -C ARCDevTools-Android checkout v0.5.1
+git -C ARCDevTools-Android checkout v0.5.2
 git -C ARCDevTools-Android submodule update --init --recursive
 git add .gitmodules ARCDevTools-Android
 ```
